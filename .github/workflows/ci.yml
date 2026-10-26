@@ -35,8 +35,11 @@ jobs:
           "$CC" -std=c11 \
             -Wall -Wextra -Wpedantic -Werror \
             -g \
-            main.c produit.c client.c commande.c \
-            statistique.c utils.c initialisation.c \
+            -I . -I Catalogue-produit -I Clients -I Commandes \
+            -I Statistiques -I Saisie-validation -I Initialisation \
+            main.c Catalogue-produit/produit.c Clients/client.c \
+            Commandes/commande.c Statistiques/statistique.c \
+            Saisie-validation/utils.c Initialisation/initialisation.c \
             -o build/shopflow
 
   analyse-statique:
@@ -58,6 +61,8 @@ jobs:
             --error-exitcode=1 \
             --inline-suppr \
             --suppress=missingIncludeSystem \
+            -I . -I Catalogue-produit -I Clients -I Commandes \
+            -I Statistiques -I Saisie-validation -I Initialisation \
             .
 
   memoire:
@@ -78,15 +83,63 @@ jobs:
           mkdir -p build
           gcc -std=c11 -g -O0 \
             -Wall -Wextra -Wpedantic \
-            main.c produit.c client.c commande.c \
-            statistique.c utils.c initialisation.c \
+            -I . -I Catalogue-produit -I Clients -I Commandes \
+            -I Statistiques -I Saisie-validation -I Initialisation \
+            main.c Catalogue-produit/produit.c Clients/client.c \
+            Commandes/commande.c Statistiques/statistique.c \
+            Saisie-validation/utils.c Initialisation/initialisation.c \
             -o build/shopflow
 
-      - name: Verifier la memoire
+      - name: Tester la creation client depuis le menu avec Valgrind
         run: |
-          printf '0\n' | timeout 30s valgrind \
+          set -o pipefail
+          printf '%s\n' \
+            '6' 'Bernard' 'Julie' 'julie@example.fr' '0612345678' \
+            '12 rue de la Paix' 'Paris' '75002' 'France' '' \
+            '7' '1' 'Martin' 'Julie' 'julie.updated@example.fr' '0711223344' \
+            '5 avenue Victor Hugo' 'Lyon' '69002' 'France' '' \
+            '9' '' '8' '1' '' '9' '' '0' \
+            | timeout 30s valgrind \
             --leak-check=full \
             --show-leak-kinds=all \
             --errors-for-leak-kinds=definite,possible \
             --error-exitcode=1 \
-            ./build/shopflow
+            ./build/shopflow \
+            | tee build/menu-client.log
+          grep -Fq "Client cree avec l'identifiant 1." build/menu-client.log
+          grep -Fq 'Coordonnees et adresse du client mises a jour.' build/menu-client.log
+          grep -Fq '1 | Martin Julie | julie.updated@example.fr | 0 | 0.00 EUR' build/menu-client.log
+          grep -Fq 'Client supprime (suppression logique).' build/menu-client.log
+          grep -Fq 'Aucun client actif.' build/menu-client.log
+
+  tests-unitaires-client:
+    name: Tests unitaires - creation client
+    runs-on: ubuntu-latest
+    needs: compilation
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installer GCC et Valgrind
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential valgrind
+
+      - name: Compiler les tests client
+        run: |
+          mkdir -p build
+          gcc -std=c11 -g -O0 \
+            -Wall -Wextra -Wpedantic -Werror \
+            -I . Clients/client.c tests/test_client_creation.c \
+            -o build/test_client_creation
+
+      - name: Executer les tests client
+        run: ./build/test_client_creation
+
+      - name: Verifier les fuites memoire des tests client
+        run: |
+          valgrind --leak-check=full \
+            --show-leak-kinds=all \
+            --errors-for-leak-kinds=definite,possible \
+            --error-exitcode=1 \
+            ./build/test_client_creation

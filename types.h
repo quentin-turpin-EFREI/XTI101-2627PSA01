@@ -1,10 +1,8 @@
-/* types.h - structures partagees et constantes de ShopFlow
- * (Date, Adresse, Produit, LigneCommande, Commande, Client, Boutique).
- * Inclus par tous les modules pour eviter les inclusions circulaires. */
+/* types.h - structures partagees et constantes de ShopFlow. */
 #ifndef TYPES_H
 #define TYPES_H
 
-/* Tailles des chaines (taille du tableau, '\0' compris) */
+/* Tailles des chaines, caractere nul compris. */
 #define TAILLE_REFERENCE    12
 #define TAILLE_DESIGNATION  60
 #define TAILLE_CATEGORIE    30
@@ -16,7 +14,16 @@
 #define TAILLE_CODE_POSTAL   6
 #define TAILLE_PAYS         50
 
-#define CAPACITE_INITIALE    4   /* premiere allocation d'un tableau dynamique */
+#define CAPACITE_INITIALE    4
+
+typedef enum {
+    OK = 0,
+    ERR_MEMOIRE,
+    ERR_DOUBLON,
+    ERR_INTROUVABLE,
+    ERR_INVALIDE,
+    ERR_INTERDIT
+} CodeRetour;
 
 typedef struct {
     char rue[TAILLE_RUE];
@@ -32,11 +39,20 @@ typedef struct {
     float prixUnitaireHT;
     int   quantiteStock;
     int   seuilAlerte;
-    int   actif;                 /* 1 = actif, 0 = supprime (logique) */
+    int   actif;
 } Produit;
 
-/* La structure Commande sera completee dans la suite du projet. */
-typedef struct Commande Commande;
+typedef enum {
+    EN_COURS = 0,
+    LIVREE,
+    ANNULEE
+} StatutCommande;
+
+typedef struct Commande {
+    int            numero;
+    StatutCommande statut;
+    float          montantHT;
+} Commande;
 
 typedef struct {
     int       idClient;
@@ -48,7 +64,7 @@ typedef struct {
     int       pointsFidelite;
     int       nbCommandes;
     int       capaciteCommandes;
-    Commande *commandes;         /* NULL tant qu'aucune commande */
+    Commande *commandes;
     int       actif;
 } Client;
 
@@ -60,8 +76,8 @@ typedef struct {
     Client  *clients;
     int      nbClients;
     int      capaciteClients;
-    int      numeroSuivant;      /* prochain numero de commande */
-    int      idClientSuivant;    /* prochain identifiant client */
+    int      numeroSuivant;
+    int      idClientSuivant;
 } Boutique;
 
 #endif /* TYPES_H */
