@@ -73,6 +73,9 @@ static int afficherMenu(void)
 int main(void)
 {
     int choix;
+    Boutique boutique = {0};
+
+    boutique.idClientSuivant = 1;
 
     do {
         choix = afficherMenu();
@@ -86,7 +89,7 @@ int main(void)
             case 5:  printf("[A faire] Rechercher un produit\n"); break;
 
             /* Clients -> client.c */
-            case 6:  printf("[A faire] Ajouter un client\n"); break;
+            case 6:  menuAjouterClient(&boutique); break;
             case 7:  printf("[A faire] Mettre a jour un client\n"); break;
             case 8:  printf("[A faire] Supprimer un client\n"); break;
             case 9:  printf("[A faire] Afficher la liste des clients\n"); break;
@@ -110,5 +113,6 @@ int main(void)
         }
     } while (choix != 0);
 
+    free(boutique.clients);
     return 0;
 }

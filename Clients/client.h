@@ -4,4 +4,10 @@
 
 #include "types.h"
 
+/* Ajoute un client valide et renvoie son identifiant attribue par la boutique. */
+CodeRetour ajouterClient(Boutique *b, const Client *client, int *idAttribue);
+
+/* Saisit les informations et appelle ajouterClient. */
+void menuAjouterClient(Boutique *b);
+
 #endif /* CLIENT_H */
