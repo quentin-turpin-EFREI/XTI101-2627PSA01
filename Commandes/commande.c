@@ -17,11 +17,11 @@ int creerCommande(Boutique *boutique, int idClient, int *numeroCommande)
     }
 
     indiceClient = trouverClient(boutique, idClient);
-    if (indiceClient < 0) {
+    if (indiceClient == 0) {
         return ERR_INTROUVABLE;
     }
 
-    client = &boutique->clients[indiceClient];
+    client = &boutique->clients[indiceClient - 1];
 
     if (client->nbCommandes >= client->capaciteCommandes) {
         nouvelleCapacite = (client->capaciteCommandes == 0)

@@ -1,0 +1,328 @@
+
+========================================
+           SHOPFLOW - MENU
+========================================
+
+--- Catalogue produits ---
+  1. Ajouter un produit
+  2. Mettre a jour un produit
+  3. Supprimer un produit
+  4. Afficher le catalogue
+  5. Rechercher un produit
+
+--- Clients ---
+  6. Ajouter un client
+  7. Mettre a jour un client
+  8. Supprimer un client
+  9. Afficher la liste des clients
+ 10. Afficher la fiche d'un client
+
+--- Commandes ---
+ 11. Creer une commande
+ 12. Ajouter / supprimer une ligne
+ 13. Changer le statut d'une commande
+ 14. Annuler une commande
+ 15. Afficher une commande
+
+--- Statistiques ---
+ 16. Chiffre d'affaires (total / par periode)
+ 17. Palmares produits (top 5)
+ 18. Palmares clients
+ 19. Alertes de stock
+
+  0. Quitter
+========================================
+Votre choix : 
+--- Liste des clients ---
+1 | Martin Aline | aline.martin@example.fr | 2 | 149.90 EUR
+2 | Bernard Karim | karim.bernard@example.fr | 1 | 89.50 EUR
+3 | Leroy Sophie | sophie.leroy@example.fr | 1 | 0.00 EUR
+
+========================================
+           SHOPFLOW - MENU
+========================================
+
+--- Catalogue produits ---
+  1. Ajouter un produit
+  2. Mettre a jour un produit
+  3. Supprimer un produit
+  4. Afficher le catalogue
+  5. Rechercher un produit
+
+--- Clients ---
+  6. Ajouter un client
+  7. Mettre a jour un client
+  8. Supprimer un client
+  9. Afficher la liste des clients
+ 10. Afficher la fiche d'un client
+
+--- Commandes ---
+ 11. Creer une commande
+ 12. Ajouter / supprimer une ligne
+ 13. Changer le statut d'une commande
+ 14. Annuler une commande
+ 15. Afficher une commande
+
+--- Statistiques ---
+ 16. Chiffre d'affaires (total / par periode)
+ 17. Palmares produits (top 5)
+ 18. Palmares clients
+ 19. Alertes de stock
+
+  0. Quitter
+========================================
+Votre choix : Identifiant du client : Suppression refusee : ce client a une commande non annulee.
+
+========================================
+           SHOPFLOW - MENU
+========================================
+
+--- Catalogue produits ---
+  1. Ajouter un produit
+  2. Mettre a jour un produit
+  3. Supprimer un produit
+  4. Afficher le catalogue
+  5. Rechercher un produit
+
+--- Clients ---
+  6. Ajouter un client
+  7. Mettre a jour un client
+  8. Supprimer un client
+  9. Afficher la liste des clients
+ 10. Afficher la fiche d'un client
+
+--- Commandes ---
+ 11. Creer une commande
+ 12. Ajouter / supprimer une ligne
+ 13. Changer le statut d'une commande
+ 14. Annuler une commande
+ 15. Afficher une commande
+
+--- Statistiques ---
+ 16. Chiffre d'affaires (total / par periode)
+ 17. Palmares produits (top 5)
+ 18. Palmares clients
+ 19. Alertes de stock
+
+  0. Quitter
+========================================
+Votre choix : Identifiant du client : Client supprime (suppression logique).
+
+========================================
+           SHOPFLOW - MENU
+========================================
+
+--- Catalogue produits ---
+  1. Ajouter un produit
+  2. Mettre a jour un produit
+  3. Supprimer un produit
+  4. Afficher le catalogue
+  5. Rechercher un produit
+
+--- Clients ---
+  6. Ajouter un client
+  7. Mettre a jour un client
+  8. Supprimer un client
+  9. Afficher la liste des clients
+ 10. Afficher la fiche d'un client
+
+--- Commandes ---
+ 11. Creer une commande
+ 12. Ajouter / supprimer une ligne
+ 13. Changer le statut d'une commande
+ 14. Annuler une commande
+ 15. Afficher une commande
+
+--- Statistiques ---
+ 16. Chiffre d'affaires (total / par periode)
+ 17. Palmares produits (top 5)
+ 18. Palmares clients
+ 19. Alertes de stock
+
+  0. Quitter
+========================================
+Votre choix : 
+--- Creation d'un client ---
+Nom : Prenom : Email : Telephone (10 chiffres) : Rue : Ville : Code postal (5 chiffres) : Pays : Client cree avec l'identifiant 4.
+
+========================================
+           SHOPFLOW - MENU
+========================================
+
+--- Catalogue produits ---
+  1. Ajouter un produit
+  2. Mettre a jour un produit
+  3. Supprimer un produit
+  4. Afficher le catalogue
+  5. Rechercher un produit
+
+--- Clients ---
+  6. Ajouter un client
+  7. Mettre a jour un client
+  8. Supprimer un client
+  9. Afficher la liste des clients
+ 10. Afficher la fiche d'un client
+
+--- Commandes ---
+ 11. Creer une commande
+ 12. Ajouter / supprimer une ligne
+ 13. Changer le statut d'une commande
+ 14. Annuler une commande
+ 15. Afficher une commande
+
+--- Statistiques ---
+ 16. Chiffre d'affaires (total / par periode)
+ 17. Palmares produits (top 5)
+ 18. Palmares clients
+ 19. Alertes de stock
+
+  0. Quitter
+========================================
+Votre choix : Identifiant du client : Nom : Prenom : Email : Telephone (10 chiffres) : Rue : Ville : Code postal (5 chiffres) : Pays : Coordonnees et adresse du client mises a jour.
+
+========================================
+           SHOPFLOW - MENU
+========================================
+
+--- Catalogue produits ---
+  1. Ajouter un produit
+  2. Mettre a jour un produit
+  3. Supprimer un produit
+  4. Afficher le catalogue
+  5. Rechercher un produit
+
+--- Clients ---
+  6. Ajouter un client
+  7. Mettre a jour un client
+  8. Supprimer un client
+  9. Afficher la liste des clients
+ 10. Afficher la fiche d'un client
+
+--- Commandes ---
+ 11. Creer une commande
+ 12. Ajouter / supprimer une ligne
+ 13. Changer le statut d'une commande
+ 14. Annuler une commande
+ 15. Afficher une commande
+
+--- Statistiques ---
+ 16. Chiffre d'affaires (total / par periode)
+ 17. Palmares produits (top 5)
+ 18. Palmares clients
+ 19. Alertes de stock
+
+  0. Quitter
+========================================
+Votre choix : 
+--- Liste des clients ---
+1 | Martin Aline | aline.martin@example.fr | 2 | 149.90 EUR
+2 | Bernard Karim | karim.bernard@example.fr | 1 | 89.50 EUR
+4 | Martin Julie | julie.updated@example.fr | 0 | 0.00 EUR
+
+========================================
+           SHOPFLOW - MENU
+========================================
+
+--- Catalogue produits ---
+  1. Ajouter un produit
+  2. Mettre a jour un produit
+  3. Supprimer un produit
+  4. Afficher le catalogue
+  5. Rechercher un produit
+
+--- Clients ---
+  6. Ajouter un client
+  7. Mettre a jour un client
+  8. Supprimer un client
+  9. Afficher la liste des clients
+ 10. Afficher la fiche d'un client
+
+--- Commandes ---
+ 11. Creer une commande
+ 12. Ajouter / supprimer une ligne
+ 13. Changer le statut d'une commande
+ 14. Annuler une commande
+ 15. Afficher une commande
+
+--- Statistiques ---
+ 16. Chiffre d'affaires (total / par periode)
+ 17. Palmares produits (top 5)
+ 18. Palmares clients
+ 19. Alertes de stock
+
+  0. Quitter
+========================================
+Votre choix : Identifiant du client : Client supprime (suppression logique).
+
+========================================
+           SHOPFLOW - MENU
+========================================
+
+--- Catalogue produits ---
+  1. Ajouter un produit
+  2. Mettre a jour un produit
+  3. Supprimer un produit
+  4. Afficher le catalogue
+  5. Rechercher un produit
+
+--- Clients ---
+  6. Ajouter un client
+  7. Mettre a jour un client
+  8. Supprimer un client
+  9. Afficher la liste des clients
+ 10. Afficher la fiche d'un client
+
+--- Commandes ---
+ 11. Creer une commande
+ 12. Ajouter / supprimer une ligne
+ 13. Changer le statut d'une commande
+ 14. Annuler une commande
+ 15. Afficher une commande
+
+--- Statistiques ---
+ 16. Chiffre d'affaires (total / par periode)
+ 17. Palmares produits (top 5)
+ 18. Palmares clients
+ 19. Alertes de stock
+
+  0. Quitter
+========================================
+Votre choix : 
+--- Liste des clients ---
+1 | Martin Aline | aline.martin@example.fr | 2 | 149.90 EUR
+2 | Bernard Karim | karim.bernard@example.fr | 1 | 89.50 EUR
+
+========================================
+           SHOPFLOW - MENU
+========================================
+
+--- Catalogue produits ---
+  1. Ajouter un produit
+  2. Mettre a jour un produit
+  3. Supprimer un produit
+  4. Afficher le catalogue
+  5. Rechercher un produit
+
+--- Clients ---
+  6. Ajouter un client
+  7. Mettre a jour un client
+  8. Supprimer un client
+  9. Afficher la liste des clients
+ 10. Afficher la fiche d'un client
+
+--- Commandes ---
+ 11. Creer une commande
+ 12. Ajouter / supprimer une ligne
+ 13. Changer le statut d'une commande
+ 14. Annuler une commande
+ 15. Afficher une commande
+
+--- Statistiques ---
+ 16. Chiffre d'affaires (total / par periode)
+ 17. Palmares produits (top 5)
+ 18. Palmares clients
+ 19. Alertes de stock
+
+  0. Quitter
+========================================
+Votre choix : Au revoir !
