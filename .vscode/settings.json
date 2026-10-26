@@ -1,0 +1,24 @@
+{
+  "window.zoomLevel": 1.1,
+
+  "editor.fontSize": 12,
+  "editor.lineHeight": 1.6,
+
+  "terminal.integrated.fontSize": 10,
+
+  "workbench.tree.indent": 18,
+  "workbench.list.rowHeight": 30,
+  "explorer.compactFolders": false,
+
+  "workbench.list.smoothScrolling": true,
+  "editor.cursorSmoothCaretAnimation": "on",
+  "editor.smoothScrolling": true,
+
+  "editor.minimap.enabled": false,
+  "breadcrumbs.enabled": true,
+
+  "workbench.iconTheme": "material-icon-theme",
+
+  "explorer.confirmDelete": false,
+  "explorer.confirmDragAndDrop": false
+}
