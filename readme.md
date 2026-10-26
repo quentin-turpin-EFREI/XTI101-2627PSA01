@@ -1,0 +1,1 @@
+[![ShopFlow - CI C](https://github.com/quentin-turpin-EFREI/XTI101-2627PSA01/actions/workflows/ci.yml/badge.svg?branch=MAIN)](https://github.com/quentin-turpin-EFREI/XTI101-2627PSA01/actions/workflows/ci.yml)
