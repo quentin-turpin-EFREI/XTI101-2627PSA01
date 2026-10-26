@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "Clients/client.h"
+#include "Commandes/commande.h"
 #include "Initialisation/initialisation.h"
 
 static Client clientValide(void)
@@ -244,6 +245,44 @@ static void testInitialisationDonneesDemo(void)
     puts("OK testInitialisationDonneesDemo");
 }
 
+static void testCreerCommande(void)
+{
+    Boutique boutique = {0};
+    LigneCommande lignes[2] = {0};
+    int numero;
+    Commande *commande;
+
+    assert(initialiserDonneesTest(&boutique) == OK);
+    assert(trouverClient(&boutique, 1) == 0);
+    assert(creerCommande(&boutique, 1, &numero) == OK);
+    assert(numero == 1005);
+    assert(boutique.numeroSuivant == 1006);
+    assert(boutique.clients[0].nbCommandes == 3);
+
+    commande = &boutique.clients[0].commandes[2];
+    assert(commande->statut == EN_COURS);
+    assert(commande->montantHT == 0.0f);
+    assert(commande->lignes == NULL);
+
+    lignes[0].prixUnitaireHT = 19.95f;
+    lignes[0].quantite = 2;
+    lignes[1].prixUnitaireHT = 4.05f;
+    lignes[1].quantite = 3;
+    commande->lignes = lignes;
+    commande->nbLignes = 2;
+    commande->capaciteLignes = 2;
+    recalculerMontantsCommande(commande);
+    assert(commande->montantHT > 52.04f && commande->montantHT < 52.06f);
+    commande->lignes = NULL; /* lignes est un tableau local au test */
+
+    assert(supprimerClient(&boutique, 3) == OK);
+    assert(creerCommande(&boutique, 3, &numero) == ERR_INTROUVABLE);
+    assert(creerCommande(&boutique, 999, &numero) == ERR_INTROUVABLE);
+
+    detruireBoutique(&boutique);
+    puts("OK testCreerCommande");
+}
+
 int main(void)
 {
     testAjoutEtValeursInitiales();
@@ -254,6 +293,7 @@ int main(void)
     testSupprimerClientSelonCommandes();
     testChiffreAffairesEtListe();
     testInitialisationDonneesDemo();
-    puts("Tous les tests clients et initialisation sont passes.");
+    testCreerCommande();
+    puts("Tous les tests clients et commandes sont passes.");
     return 0;
 }

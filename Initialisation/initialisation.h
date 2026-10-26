@@ -4,7 +4,10 @@
 
 #include "types.h"
 
+/* Charge les clients et commandes de demonstration. */
 CodeRetour initialiserDonneesTest(Boutique *boutique);
+
+/* Libere les commandes, lignes et tableaux alloues de la boutique. */
 void detruireBoutique(Boutique *boutique);
 
 #endif /* INITIALISATION_H */

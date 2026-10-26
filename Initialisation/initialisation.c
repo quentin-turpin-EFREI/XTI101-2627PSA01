@@ -59,14 +59,14 @@ CodeRetour initialiserDonneesTest(Boutique *boutique)
     Boutique donnees = {0};
     Client client = {0};
     Commande commandesAline[] = {
-        {1001, EN_COURS, 149.90f},
-        {1002, ANNULEE, 39.90f}
+        {1001, EN_COURS, 149.90f, NULL, 0, 0},
+        {1002, ANNULEE, 39.90f, NULL, 0, 0}
     };
     Commande commandeKarim[] = {
-        {1003, LIVREE, 89.50f}
+        {1003, LIVREE, 89.50f, NULL, 0, 0}
     };
     Commande commandeSophie[] = {
-        {1004, ANNULEE, 30.00f}
+        {1004, ANNULEE, 30.00f, NULL, 0, 0}
     };
     CodeRetour resultat;
 
@@ -115,8 +115,13 @@ void detruireBoutique(Boutique *boutique)
     if (boutique == NULL)
         return;
 
-    for (i = 0; i < boutique->nbClients; i++)
+    for (i = 0; i < boutique->nbClients; i++) {
+        int j;
+
+        for (j = 0; j < boutique->clients[i].nbCommandes; j++)
+            free(boutique->clients[i].commandes[j].lignes);
         free(boutique->clients[i].commandes);
+    }
 
     free(boutique->clients);
     free(boutique->produits);

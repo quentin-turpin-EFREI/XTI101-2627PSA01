@@ -119,7 +119,10 @@ int main(void)
                 afficherListeClients(&boutique);
                 attendreEntree();
                 break;
-            case 10: printf("[A faire] Afficher la fiche d'un client\n"); break;
+            case 10:
+                afficherFicheClient(&boutique);
+                attendreEntree();
+                break;
 
             /* Commandes -> commande.c */
             case 11: printf("[A faire] Creer une commande\n"); break;
