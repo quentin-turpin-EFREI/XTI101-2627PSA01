@@ -94,11 +94,12 @@ jobs:
         run: |
           set -o pipefail
           printf '%s\n' \
+            '9' '8' '2' '8' '3' \
             '6' 'Bernard' 'Julie' 'julie@example.fr' '0612345678' \
             '12 rue de la Paix' 'Paris' '75002' 'France' \
-            '7' '1' 'Martin' 'Julie' 'julie.updated@example.fr' '0711223344' \
+            '7' '4' 'Martin' 'Julie' 'julie.updated@example.fr' '0711223344' \
             '5 avenue Victor Hugo' 'Lyon' '69002' 'France' \
-            '9' '8' '1' '9' '0' \
+            '9' '8' '4' '9' '0' \
             | timeout 30s valgrind \
             --leak-check=full \
             --show-leak-kinds=all \
@@ -106,11 +107,13 @@ jobs:
             --error-exitcode=1 \
             ./build/shopflow \
             | tee build/menu-client.log
-          grep -Fq "Client cree avec l'identifiant 1." build/menu-client.log
+          grep -Fq "Client cree avec l'identifiant 4." build/menu-client.log
           grep -Fq 'Coordonnees et adresse du client mises a jour.' build/menu-client.log
-          grep -Fq '1 | Martin Julie | julie.updated@example.fr | 0 | 0.00 EUR' build/menu-client.log
+          grep -Fq '1 | Martin Aline | aline.martin@example.fr | 2 | 149.90 EUR' build/menu-client.log
+          grep -Fq '2 | Bernard Karim | karim.bernard@example.fr | 1 | 89.50 EUR' build/menu-client.log
+          grep -Fq '4 | Martin Julie | julie.updated@example.fr | 0 | 0.00 EUR' build/menu-client.log
+          grep -Fq 'Suppression refusee : ce client a une commande non annulee.' build/menu-client.log
           grep -Fq 'Client supprime (suppression logique).' build/menu-client.log
-          grep -Fq 'Aucun client actif.' build/menu-client.log
 
   tests-unitaires-client:
     name: Tests unitaires - creation client
@@ -130,7 +133,8 @@ jobs:
           mkdir -p build
           gcc -std=c11 -g -O0 \
             -Wall -Wextra -Wpedantic -Werror \
-            -I . Clients/client.c tests/test_client_creation.c \
+            -I . -I Clients Clients/client.c Initialisation/initialisation.c \
+            tests/test_client_creation.c \
             -o build/test_client_creation
 
       - name: Executer les tests client

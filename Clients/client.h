@@ -16,7 +16,7 @@ CodeRetour modifierClient(Boutique *b, int idClient, const Client *infos);
 CodeRetour supprimerClient(Boutique *b, int idClient);
 float chiffreAffairesClient(const Client *client);
 void afficherListeClients(const Boutique *b);
-
+void afficherFicheClient(const Boutique *b);
 /* Saisit les informations et appelle ajouterClient. */
 void menuAjouterClient(Boutique *b);
 void menuModifierClient(Boutique *b);

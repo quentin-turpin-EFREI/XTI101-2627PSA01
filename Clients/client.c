@@ -1,6 +1,5 @@
 /* client.c - fonctions metier du module Clients. */
 #include <ctype.h>
-#include <errno.h>
 #include <limits.h>
 #include <stdio.h>
 #include <stdint.h>
@@ -80,7 +79,14 @@ static int clientValide(const Client *client)
 /* Les emails restent reserves meme si le client est desactive. */
 static int emailDejaUtilise(const Boutique *b, const char *email)
 {
-    return emailExiste(b, email, 0);
+    int i;
+
+    for (i = 0; i < b->nbClients; i++) {
+        if (emailsEgaux(b->clients[i].email, email))
+            return 1;
+    }
+
+    return 0;
 }
 
 static CodeRetour agrandirRepertoireClients(Boutique *b)
@@ -148,145 +154,6 @@ CodeRetour ajouterClient(Boutique *b, const Client *client, int *idAttribue)
     return OK;
 }
 
-int trouverClient(const Boutique *b, int idClient)
-{
-    int i;
-
-    if (b == NULL || b->clients == NULL || b->nbClients <= 0 || idClient <= 0)
-        return -1;
-
-    for (i = 0; i < b->nbClients; i++) {
-        if (b->clients[i].idClient == idClient)
-            return i;
-    }
-
-    return -1;
-}
-
-int emailExiste(const Boutique *b, const char *email, int idIgnore)
-{
-    int i;
-
-    if (b == NULL || email == NULL || b->clients == NULL || b->nbClients <= 0)
-        return 0;
-
-    for (i = 0; i < b->nbClients; i++) {
-        if (b->clients[i].idClient != idIgnore
-            && emailsEgaux(b->clients[i].email, email))
-            return 1;
-    }
-
-    return 0;
-}
-
-CodeRetour modifierClient(Boutique *b, int idClient, const Client *infos)
-{
-    int indice;
-    Client *client;
-
-    if (b == NULL || infos == NULL)
-        return ERR_INVALIDE;
-
-    indice = trouverClient(b, idClient);
-    if (indice < 0 || !b->clients[indice].actif)
-        return ERR_INTROUVABLE;
-
-    if (!clientValide(infos))
-        return ERR_INVALIDE;
-
-    if (emailExiste(b, infos->email, idClient))
-        return ERR_DOUBLON;
-
-    client = &b->clients[indice];
-    memcpy(client->nom, infos->nom, sizeof client->nom);
-    memcpy(client->prenom, infos->prenom, sizeof client->prenom);
-    memcpy(client->email, infos->email, sizeof client->email);
-    memcpy(client->telephone, infos->telephone, sizeof client->telephone);
-    client->adresse = infos->adresse;
-
-    return OK;
-}
-
-CodeRetour supprimerClient(Boutique *b, int idClient)
-{
-    int indice;
-    int i;
-    Client *client;
-
-    if (b == NULL)
-        return ERR_INVALIDE;
-
-    indice = trouverClient(b, idClient);
-    if (indice < 0 || !b->clients[indice].actif)
-        return ERR_INTROUVABLE;
-
-    client = &b->clients[indice];
-    if (client->nbCommandes < 0
-        || client->nbCommandes > client->capaciteCommandes
-        || (client->nbCommandes > 0 && client->commandes == NULL))
-        return ERR_INVALIDE;
-
-    for (i = 0; i < client->nbCommandes; i++) {
-        if (client->commandes[i].statut != ANNULEE)
-            return ERR_INTERDIT;
-    }
-
-    client->actif = 0;
-    return OK;
-}
-
-float chiffreAffairesClient(const Client *client)
-{
-    float chiffreAffaires = 0.0f;
-    int i;
-
-    if (client == NULL || client->nbCommandes <= 0
-        || client->nbCommandes > client->capaciteCommandes
-        || client->commandes == NULL)
-        return 0.0f;
-
-    for (i = 0; i < client->nbCommandes; i++) {
-        if (client->commandes[i].statut != ANNULEE)
-            chiffreAffaires += client->commandes[i].montantHT;
-    }
-
-    return chiffreAffaires;
-}
-
-void afficherListeClients(const Boutique *b)
-{
-    int i;
-    int affiches = 0;
-
-    if (b == NULL) {
-        puts("Erreur : boutique indisponible.");
-        return;
-    }
-
-    if (b->nbClients < 0 || b->nbClients > b->capaciteClients
-        || (b->nbClients > 0 && b->clients == NULL)) {
-        puts("Erreur : repertoire clients incoherent.");
-        return;
-    }
-
-    puts("\n--- Liste des clients ---");
-    puts("ID | Client | Email | Commandes | CA HT");
-
-    for (i = 0; i < b->nbClients; i++) {
-        const Client *client = &b->clients[i];
-
-        if (client->actif) {
-            printf("%d | %s %s | %s | %d | %.2f EUR\n",
-                   client->idClient, client->nom, client->prenom, client->email,
-                   client->nbCommandes, chiffreAffairesClient(client));
-            affiches++;
-        }
-    }
-
-    if (affiches == 0)
-        puts("Aucun client actif.");
-}
-
 /* Lit une ligne complete; refuse les valeurs trop longues au lieu de les couper. */
 static int lireChamp(const char *invite, char *destination, size_t capacite)
 {
@@ -316,28 +183,6 @@ static int lireChamp(const char *invite, char *destination, size_t capacite)
     if (longueur > 0 && destination[longueur - 1] == '\r')
         destination[longueur - 1] = '\0';
 
-    return 1;
-}
-
-static int lireIdClient(int *idClient)
-{
-    char saisie[32];
-    char *fin;
-    long valeur;
-
-    if (!lireChamp("Identifiant client : ", saisie, sizeof saisie))
-        return 0;
-
-    errno = 0;
-    valeur = strtol(saisie, &fin, 10);
-    while (isspace((unsigned char)*fin))
-        fin++;
-
-    if (errno != 0 || fin == saisie || *fin != '\0'
-        || valeur <= 0 || valeur > INT_MAX)
-        return 0;
-
-    *idClient = (int)valeur;
     return 1;
 }
 
@@ -390,81 +235,4 @@ void menuAjouterClient(Boutique *b)
     }
 }
 
-void menuModifierClient(Boutique *b)
-{
-    Client infos = {0};
-    int idClient;
-    CodeRetour resultat;
 
-    if (b == NULL || !lireIdClient(&idClient)) {
-        puts("Identifiant client invalide.");
-        return;
-    }
-
-    puts("--- Nouvelles coordonnees et adresse de livraison ---");
-    if (!lireChamp("Nom : ", infos.nom, sizeof infos.nom)
-        || !lireChamp("Prenom : ", infos.prenom, sizeof infos.prenom)
-        || !lireChamp("Email : ", infos.email, sizeof infos.email)
-        || !lireChamp("Telephone (10 chiffres) : ", infos.telephone,
-                      sizeof infos.telephone)
-        || !lireChamp("Rue : ", infos.adresse.rue, sizeof infos.adresse.rue)
-        || !lireChamp("Ville : ", infos.adresse.ville,
-                      sizeof infos.adresse.ville)
-        || !lireChamp("Code postal (5 chiffres) : ",
-                      infos.adresse.codePostal,
-                      sizeof infos.adresse.codePostal)
-        || !lireChamp("Pays : ", infos.adresse.pays,
-                      sizeof infos.adresse.pays)) {
-        puts("Saisie interrompue ou trop longue; client non modifie.");
-        return;
-    }
-
-    resultat = modifierClient(b, idClient, &infos);
-    switch (resultat) {
-        case OK:
-            puts("Coordonnees et adresse du client mises a jour.");
-            break;
-        case ERR_DOUBLON:
-            puts("Erreur : un autre client utilise deja cette adresse email.");
-            break;
-        case ERR_INTROUVABLE:
-            puts("Erreur : client introuvable ou desactive.");
-            break;
-        case ERR_INVALIDE:
-            puts("Erreur : informations invalides. Verifiez les champs saisis.");
-            break;
-        default:
-            puts("Erreur inattendue pendant la modification du client.");
-            break;
-    }
-}
-
-void menuSupprimerClient(Boutique *b)
-{
-    int idClient;
-    CodeRetour resultat;
-
-    if (b == NULL || !lireIdClient(&idClient)) {
-        puts("Identifiant client invalide.");
-        return;
-    }
-
-    resultat = supprimerClient(b, idClient);
-    switch (resultat) {
-        case OK:
-            puts("Client supprime (suppression logique).");
-            break;
-        case ERR_INTROUVABLE:
-            puts("Erreur : client introuvable ou deja desactive.");
-            break;
-        case ERR_INTERDIT:
-            puts("Suppression refusee : ce client a une commande non annulee.");
-            break;
-        case ERR_INVALIDE:
-            puts("Erreur : donnees client incoherentes.");
-            break;
-        default:
-            puts("Erreur inattendue pendant la suppression du client.");
-            break;
-    }
-}
