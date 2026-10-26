@@ -70,6 +70,17 @@ static int afficherMenu(void)
     return choix;
 }
 
+static void attendreEntree(void)
+{
+    int caractere;
+
+    printf("\nAppuyez sur Entree pour revenir au menu principal...");
+    fflush(stdout);
+    do {
+        caractere = getchar();
+    } while (caractere != '\n' && caractere != EOF);
+}
+
 int main(void)
 {
     int choix;
@@ -89,10 +100,22 @@ int main(void)
             case 5:  printf("[A faire] Rechercher un produit\n"); break;
 
             /* Clients -> client.c */
-            case 6:  menuAjouterClient(&boutique); break;
-            case 7:  menuModifierClient(&boutique); break;
-            case 8:  menuSupprimerClient(&boutique); break;
-            case 9:  afficherListeClients(&boutique); break;
+            case 6:
+                menuAjouterClient(&boutique);
+                attendreEntree();
+                break;
+            case 7:
+                menuModifierClient(&boutique);
+                attendreEntree();
+                break;
+            case 8:
+                menuSupprimerClient(&boutique);
+                attendreEntree();
+                break;
+            case 9:
+                afficherListeClients(&boutique);
+                attendreEntree();
+                break;
             case 10: printf("[A faire] Afficher la fiche d'un client\n"); break;
 
             /* Commandes -> commande.c */

@@ -95,10 +95,10 @@ jobs:
           set -o pipefail
           printf '%s\n' \
             '6' 'Bernard' 'Julie' 'julie@example.fr' '0612345678' \
-            '12 rue de la Paix' 'Paris' '75002' 'France' \
+            '12 rue de la Paix' 'Paris' '75002' 'France' '' \
             '7' '1' 'Martin' 'Julie' 'julie.updated@example.fr' '0711223344' \
-            '5 avenue Victor Hugo' 'Lyon' '69002' 'France' \
-            '9' '8' '1' '9' '0' \
+            '5 avenue Victor Hugo' 'Lyon' '69002' 'France' '' \
+            '9' '' '8' '1' '' '9' '' '0' \
             | timeout 30s valgrind \
             --leak-check=full \
             --show-leak-kinds=all \
