@@ -95,7 +95,10 @@ jobs:
           set -o pipefail
           printf '%s\n' \
             '6' 'Bernard' 'Julie' 'julie@example.fr' '0612345678' \
-            '12 rue de la Paix' 'Paris' '75002' 'France' '0' \
+            '12 rue de la Paix' 'Paris' '75002' 'France' \
+            '7' '1' 'Martin' 'Julie' 'julie.updated@example.fr' '0711223344' \
+            '5 avenue Victor Hugo' 'Lyon' '69002' 'France' \
+            '9' '8' '1' '9' '0' \
             | timeout 30s valgrind \
             --leak-check=full \
             --show-leak-kinds=all \
@@ -104,6 +107,10 @@ jobs:
             ./build/shopflow \
             | tee build/menu-client.log
           grep -Fq "Client cree avec l'identifiant 1." build/menu-client.log
+          grep -Fq 'Coordonnees et adresse du client mises a jour.' build/menu-client.log
+          grep -Fq '1 | Martin Julie | julie.updated@example.fr | 0 | 0.00 EUR' build/menu-client.log
+          grep -Fq 'Client supprime (suppression logique).' build/menu-client.log
+          grep -Fq 'Aucun client actif.' build/menu-client.log
 
   tests-unitaires-client:
     name: Tests unitaires - creation client

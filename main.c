@@ -90,9 +90,9 @@ int main(void)
 
             /* Clients -> client.c */
             case 6:  menuAjouterClient(&boutique); break;
-            case 7:  printf("[A faire] Mettre a jour un client\n"); break;
-            case 8:  printf("[A faire] Supprimer un client\n"); break;
-            case 9:  printf("[A faire] Afficher la liste des clients\n"); break;
+            case 7:  menuModifierClient(&boutique); break;
+            case 8:  menuSupprimerClient(&boutique); break;
+            case 9:  afficherListeClients(&boutique); break;
             case 10: printf("[A faire] Afficher la fiche d'un client\n"); break;
 
             /* Commandes -> commande.c */

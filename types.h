@@ -42,8 +42,17 @@ typedef struct {
     int   actif;
 } Produit;
 
-/* La structure complete sera definie avec le module Commandes. */
-typedef struct Commande Commande;
+typedef enum {
+    EN_COURS = 0,
+    LIVREE,
+    ANNULEE
+} StatutCommande;
+
+typedef struct Commande {
+    int            numero;
+    StatutCommande statut;
+    float          montantHT;
+} Commande;
 
 typedef struct {
     int       idClient;
