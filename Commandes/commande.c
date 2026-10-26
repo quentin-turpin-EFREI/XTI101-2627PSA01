@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "commande.h"
+#include "../Clients/client.h"
 int creerCommande(Boutique *boutique, int idClient, int *numeroCommande)
 {
     int indiceClient;
