@@ -1,0 +1,93 @@
+
+name: ShopFlow - CI C
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compilation:
+    name: Compilation - ${{ matrix.compiler }}
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [gcc, clang]
+
+    steps:
+      - name: Recuperer le depot
+        uses: actions/checkout@v4
+
+      - name: Installer les outils
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential clang
+
+      - name: Compiler avec controles stricts
+        env:
+          CC: ${{ matrix.compiler }}
+        run: |
+          mkdir -p build
+          "$CC" -std=c11 \
+            -Wall -Wextra -Wpedantic -Werror \
+            -g \
+            main.c produit.c client.c commande.c \
+            statistique.c utils.c initialisation.c \
+            -o build/shopflow
+
+  analyse-statique:
+    name: Analyse statique Cppcheck
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installer Cppcheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cppcheck
+
+      - name: Analyser le code
+        run: |
+          cppcheck \
+            --enable=warning \
+            --error-exitcode=1 \
+            --inline-suppr \
+            --suppress=missingIncludeSystem \
+            .
+
+  memoire:
+    name: Analyse memoire Valgrind
+    runs-on: ubuntu-latest
+    needs: compilation
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installer les outils
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential valgrind
+
+      - name: Compiler en mode debug
+        run: |
+          mkdir -p build
+          gcc -std=c11 -g -O0 \
+            -Wall -Wextra -Wpedantic \
+            main.c produit.c client.c commande.c \
+            statistique.c utils.c initialisation.c \
+            -o build/shopflow
+
+      - name: Verifier la memoire
+        run: |
+          printf '0\n' | timeout 30s valgrind \
+            --leak-check=full \
+            --show-leak-kinds=all \
+            --errors-for-leak-kinds=definite,possible \
+            --error-exitcode=1 \
+            ./build/shopflow
