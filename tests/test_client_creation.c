@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "Clients/client.h"
+#include "Initialisation/initialisation.h"
 
 static Client clientValide(void)
 {
@@ -220,6 +221,29 @@ static void testChiffreAffairesEtListe(void)
     puts("OK testChiffreAffairesEtListe");
 }
 
+static void testInitialisationDonneesDemo(void)
+{
+    Boutique boutique = {0};
+
+    assert(initialiserDonneesTest(&boutique) == OK);
+    assert(boutique.nbClients == 3);
+    assert(boutique.idClientSuivant == 4);
+    assert(boutique.numeroSuivant == 1005);
+    assert(boutique.clients[0].nbCommandes == 2);
+    assert(chiffreAffairesClient(&boutique.clients[0]) == 149.90f);
+    assert(boutique.clients[1].nbCommandes == 1);
+    assert(chiffreAffairesClient(&boutique.clients[1]) == 89.50f);
+    assert(boutique.clients[2].nbCommandes == 1);
+    assert(chiffreAffairesClient(&boutique.clients[2]) == 0.0f);
+    assert(supprimerClient(&boutique, 2) == ERR_INTERDIT);
+    assert(supprimerClient(&boutique, 3) == OK);
+
+    detruireBoutique(&boutique);
+    assert(boutique.clients == NULL);
+    assert(boutique.nbClients == 0);
+    puts("OK testInitialisationDonneesDemo");
+}
+
 int main(void)
 {
     testAjoutEtValeursInitiales();
@@ -229,6 +253,7 @@ int main(void)
     testModifierClient();
     testSupprimerClientSelonCommandes();
     testChiffreAffairesEtListe();
-    puts("Tous les tests clients sont passes.");
+    testInitialisationDonneesDemo();
+    puts("Tous les tests clients et initialisation sont passes.");
     return 0;
 }

@@ -86,7 +86,10 @@ int main(void)
     int choix;
     Boutique boutique = {0};
 
-    boutique.idClientSuivant = 1;
+    if (initialiserDonneesTest(&boutique) != OK) {
+        fprintf(stderr, "Impossible de charger les donnees de demonstration.\n");
+        return EXIT_FAILURE;
+    }
 
     do {
         choix = afficherMenu();
@@ -136,6 +139,6 @@ int main(void)
         }
     } while (choix != 0);
 
-    free(boutique.clients);
+    detruireBoutique(&boutique);
     return 0;
 }

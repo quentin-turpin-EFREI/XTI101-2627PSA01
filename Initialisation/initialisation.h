@@ -4,4 +4,7 @@
 
 #include "types.h"
 
+CodeRetour initialiserDonneesTest(Boutique *boutique);
+void detruireBoutique(Boutique *boutique);
+
 #endif /* INITIALISATION_H */
