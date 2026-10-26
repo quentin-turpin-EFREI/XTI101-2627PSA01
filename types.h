@@ -18,21 +18,6 @@
 
 #define CAPACITE_INITIALE    4   /* premiere allocation d'un tableau dynamique */
 
-typedef enum {
-    OK = 0,
-    ERR_MEMOIRE,
-    ERR_DOUBLON,
-    ERR_INTROUVABLE,
-    ERR_INVALIDE,
-    ERR_INTERDIT
-} CodeRetour;
-
-typedef struct {
-    int jour;
-    int mois;
-    int annee;
-} Date;
-
 typedef struct {
     char rue[TAILLE_RUE];
     char ville[TAILLE_VILLE];
@@ -50,31 +35,8 @@ typedef struct {
     int   actif;                 /* 1 = actif, 0 = supprime (logique) */
 } Produit;
 
-typedef struct {
-    char refProduit[TAILLE_REFERENCE];
-    char designation[TAILLE_DESIGNATION];
-    int quantite;
-    float prixUnitaireHT;
-    float sousTotalHT;
-} LigneCommande;
-
-typedef struct {
-    int numero;
-    int idClient;
-    Date dateCommande;
-    char statut[20];
-    int nbLignes;
-    int capaciteLignes;
-    LigneCommande *lignes;
-    float montantBrutHT;
-    float tauxRemise;
-    float montantRemise;
-    float montantHT;
-    float montantTVA;
-    float montantTTC;
-    float fraisPort;
-    Adresse adresseLivraison;
-} Commande;
+/* La structure Commande sera completee dans la suite du projet. */
+typedef struct Commande Commande;
 
 typedef struct {
     int       idClient;
