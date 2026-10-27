@@ -4,4 +4,21 @@
 
 #include "types.h"
 
+int trouverProduit(const Boutique *boutique, const char *reference);
+CodeRetour ajouterProduit(Boutique *boutique, const Produit *produit);
+CodeRetour modifierProduit(Boutique *boutique, const char *reference,
+                           float prix, int stock, int seuil);
+CodeRetour supprimerProduit(Boutique *boutique, const char *reference);
+float valeurStock(const Boutique *boutique);
+CodeRetour retirerStock(Boutique *boutique, const char *reference, int quantite);
+CodeRetour remettreStock(Boutique *boutique, const char *reference, int quantite);
+
+void afficherProduit(const Produit *produit);
+void afficherCatalogue(const Boutique *boutique);
+void afficherAlertesStock(const Boutique *boutique);
+void menuAjouterProduit(Boutique *boutique);
+void menuModifierProduit(Boutique *boutique);
+void menuSupprimerProduit(Boutique *boutique);
+void menuRechercherProduit(const Boutique *boutique);
+
 #endif /* PRODUIT_H */

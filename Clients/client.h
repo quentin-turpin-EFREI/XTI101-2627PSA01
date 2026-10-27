@@ -12,13 +12,16 @@ int trouverClient(const Boutique *b, int idClient);
 /* Les emails des clients desactives restent reserves. */
 int emailExiste(const Boutique *b, const char *email, int idIgnore);
 
-/* Fonctions metier des actions client. */
+/* Regles metier et acces aux donnees (client.c). */
 CodeRetour modifierClient(Boutique *b, int idClient, const Client *infos);
 CodeRetour supprimerClient(Boutique *b, int idClient);
 float chiffreAffairesClient(const Client *client);
+
+/* Affichage des donnees clients (client_affichage.c). */
 void afficherListeClients(const Boutique *b);
+
+/* Fiche interactive et formulaires (client_saisie.c). */
 void afficherFicheClient(const Boutique *b);
-/* Saisit les informations et appelle ajouterClient. */
 void menuAjouterClient(Boutique *b);
 void menuModifierClient(Boutique *b);
 void menuSupprimerClient(Boutique *b);
