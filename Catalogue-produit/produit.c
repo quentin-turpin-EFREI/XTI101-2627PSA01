@@ -1,4 +1,3 @@
-/* produit.c - V1 : ajout et affichage du catalogue */
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
@@ -6,11 +5,13 @@
 #include "produit.h"
 
 /* Renvoie la position du produit, ou -1 si la reference n'existe pas. */
-int trouverProduit(const Boutique *boutique, const char *reference)
+int trouverProduit(Boutique *boutique, const char *reference)
 {
     int i;
-    for (i = 0; i < boutique->nbProduits; i++) {
-        if (strcmp(boutique->produits[i].reference, reference) == 0) {
+    for (i = 0; i < boutique->nbProduits; i++)
+    {
+        if (strcmp(boutique->produits[i].reference, reference) == 0)
+        {
             return i;
         }
     }
@@ -21,26 +22,30 @@ CodeRetour ajouterProduit(Boutique *boutique, const Produit *produit)
 {
     Produit *nouveauTableau;
     int capacite;
-    if (produit->reference[0] == '\0' || produit->designation[0] == '\0'
-        || produit->categorie[0] == '\0' || !(produit->prixUnitaireHT > 0.0f)
-        || !isfinite(produit->prixUnitaireHT)
-        || produit->quantiteStock < 0 || produit->seuilAlerte < 0) {
+    if (strlen(produit->reference) == 0 || strlen(produit->designation) == 0 || strlen(produit->categorie) == 0 || !(produit->prixUnitaireHT > 0.0f) || !isfinite(produit->prixUnitaireHT) || produit->quantiteStock < 0 || produit->seuilAlerte < 0)
+    {
         return ERR_INVALIDE;
     }
-    if (trouverProduit(boutique, produit->reference) != -1) {
+    if (trouverProduit(boutique, produit->reference) != -1)
+    {
         return ERR_DOUBLON;
     }
     /* On agrandit le tableau seulement quand il est plein. */
-    if (boutique->nbProduits == boutique->capaciteProduits) {
-        if (boutique->capaciteProduits == 0) {
+    if (boutique->nbProduits == boutique->capaciteProduits)
+    {
+        if (boutique->capaciteProduits == 0)
+        {
             capacite = CAPACITE_INITIALE;
             nouveauTableau = malloc(capacite * sizeof(Produit));
-        } else {
+        }
+        else
+        {
             capacite = boutique->capaciteProduits * 2;
             nouveauTableau = realloc(boutique->produits, capacite * sizeof(Produit));
         }
         /* Si l'allocation echoue, on conserve l'ancien tableau. */
-        if (nouveauTableau == NULL) {
+        if (nouveauTableau == NULL)
+        {
             return ERR_MEMOIRE;
         }
         boutique->produits = nouveauTableau;
@@ -52,24 +57,26 @@ CodeRetour ajouterProduit(Boutique *boutique, const Produit *produit)
     return OK;
 }
 
-void afficherCatalogue(const Boutique *boutique)
+void afficherCatalogue(Boutique *boutique)
 {
     int i, nombre = 0;
     float valeurStock = 0;
     printf("\n--- Catalogue produits ---\n");
-    for (i = 0; i < boutique->nbProduits; i++) {
-        if (boutique->produits[i].actif == 1) {
+    for (i = 0; i < boutique->nbProduits; i++)
+    {
+        if (boutique->produits[i].actif == 1)
+        {
             printf("%s - %s (%s)\n", boutique->produits[i].reference,
                    boutique->produits[i].designation, boutique->produits[i].categorie);
             printf("Prix HT : %.2f EUR | Stock : %d | Seuil : %d\n",
                    boutique->produits[i].prixUnitaireHT,
                    boutique->produits[i].quantiteStock, boutique->produits[i].seuilAlerte);
-            valeurStock += boutique->produits[i].prixUnitaireHT
-                           * boutique->produits[i].quantiteStock;
+            valeurStock += boutique->produits[i].prixUnitaireHT * boutique->produits[i].quantiteStock;
             nombre++;
         }
     }
-    if (nombre == 0) {
+    if (nombre == 0)
+    {
         printf("Aucun produit actif.\n");
     }
     printf("Valeur du stock : %.2f EUR HT\n", valeurStock);
