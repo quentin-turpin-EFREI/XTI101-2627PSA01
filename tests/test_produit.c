@@ -30,6 +30,12 @@ int main(void)
     produit.prixUnitaireHT = INFINITY;
     assert(ajouterProduit(&boutique, &produit) == ERR_INVALIDE);
     produit.prixUnitaireHT = 20;
+    produit.reference[0] = '\0';
+    assert(ajouterProduit(&boutique, &produit) == ERR_INVALIDE);
+    strcpy(produit.reference, "PRD-0002");
+    produit.categorie[0] = '\0';
+    assert(ajouterProduit(&boutique, &produit) == ERR_INVALIDE);
+    strcpy(produit.categorie, "Informatique");
     produit.quantiteStock = -1;
     assert(ajouterProduit(&boutique, &produit) == ERR_INVALIDE);
     produit.quantiteStock = 3;

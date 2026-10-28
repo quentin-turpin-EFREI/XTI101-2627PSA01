@@ -103,6 +103,14 @@ static void testValidationChamps(void)
     assert(ajouterClient(&boutique, &client, &id) == ERR_INVALIDE);
 
     client = clientValide();
+    strcpy(client.nom, "   ");
+    assert(ajouterClient(&boutique, &client, &id) == ERR_INVALIDE);
+
+    client = clientValide();
+    client.prenom[0] = '\0';
+    assert(ajouterClient(&boutique, &client, &id) == ERR_INVALIDE);
+
+    client = clientValide();
     strcpy(client.telephone, "06123x5678");
     assert(ajouterClient(&boutique, &client, &id) == ERR_INVALIDE);
 
@@ -115,11 +123,19 @@ static void testValidationChamps(void)
     assert(ajouterClient(&boutique, &client, &id) == ERR_INVALIDE);
 
     client = clientValide();
+    client.telephone[0] = '\0';
+    assert(ajouterClient(&boutique, &client, &id) == ERR_INVALIDE);
+
+    client = clientValide();
     strcpy(client.adresse.codePostal, "7500");
     assert(ajouterClient(&boutique, &client, &id) == ERR_INVALIDE);
 
     client = clientValide();
     strcpy(client.adresse.codePostal, "75A02");
+    assert(ajouterClient(&boutique, &client, &id) == ERR_INVALIDE);
+
+    client = clientValide();
+    client.adresse.codePostal[0] = '\0';
     assert(ajouterClient(&boutique, &client, &id) == ERR_INVALIDE);
 
     client = clientValide();
