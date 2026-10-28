@@ -155,7 +155,7 @@ jobs:
           gcc -std=c11 -g -O0 \
             -Wall -Wextra -Wpedantic -Werror \
             -I . -I Clients -I Commandes \
-            Clients/client.c Commandes/commande.c \
+            Clients/client.c Clients/client_affichage.c Commandes/commande.c \
             Initialisation/initialisation.c \
             tests/test_client_creation.c \
             -o build/test_client_creation
