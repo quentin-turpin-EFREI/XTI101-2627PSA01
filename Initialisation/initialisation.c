@@ -115,13 +115,8 @@ void detruireBoutique(Boutique *boutique)
     if (boutique == NULL)
         return;
 
-    for (i = 0; i < boutique->nbClients; i++) {
-        int j;
-
-        for (j = 0; j < boutique->clients[i].nbCommandes; j++)
-            free(boutique->clients[i].commandes[j].lignes);
-        free(boutique->clients[i].commandes);
-    }
+    for (i = 0; i < boutique->nbClients; i++)
+        libererClient(&boutique->clients[i]);
 
     free(boutique->clients);
     free(boutique->produits);

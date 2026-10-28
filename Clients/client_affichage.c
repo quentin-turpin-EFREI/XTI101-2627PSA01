@@ -3,6 +3,19 @@
 
 #include "client.h"
 
+void afficherClient(const Client *client)
+{
+    if (client == NULL) {
+        puts("Client indisponible.");
+        return;
+    }
+
+    printf("%d | %s %s | %s | %d | %.2f EUR\n",
+           client->idClient, client->nom, client->prenom,
+           client->email, client->nbCommandes,
+           chiffreAffairesClient(client));
+}
+
 void afficherListeClients(const Boutique *b)
 {
     int i;
@@ -20,10 +33,7 @@ void afficherListeClients(const Boutique *b)
         const Client *client = &b->clients[i];
 
         if (client->actif) {
-            printf("%d | %s %s | %s | %d | %.2f EUR\n",
-                   client->idClient, client->nom, client->prenom,
-                   client->email, client->nbCommandes,
-                   chiffreAffairesClient(client));
+            afficherClient(client);
             nombreAffiche++;
         }
     }

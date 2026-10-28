@@ -91,3 +91,42 @@ void recalculerMontantsCommande(Commande *commande)
 
     commande->montantHT = total;
 }
+
+static const char *nomStatutCommande(StatutCommande statut)
+{
+    switch (statut) {
+        case EN_COURS:
+            return "En cours";
+        case LIVREE:
+            return "Livree";
+        case ANNULEE:
+            return "Annulee";
+        default:
+            return "Inconnu";
+    }
+}
+
+void afficherHistoriqueCommandes(const Client *client)
+{
+    int i;
+
+    puts("\n--- Historique des commandes ---");
+    if (client == NULL || client->nbCommandes < 0
+        || client->nbCommandes > client->capaciteCommandes
+        || (client->nbCommandes > 0 && client->commandes == NULL)) {
+        puts("Erreur : historique des commandes incoherent.");
+        return;
+    }
+
+    if (client->nbCommandes == 0) {
+        puts("Aucune commande.");
+        return;
+    }
+
+    for (i = 0; i < client->nbCommandes; i++) {
+        const Commande *commande = &client->commandes[i];
+
+        printf("%d | %s | %.2f EUR HT\n", commande->numero,
+               nomStatutCommande(commande->statut), commande->montantHT);
+    }
+}

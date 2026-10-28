@@ -5,9 +5,20 @@
 #include <string.h>
 
 #include "client.h"
+#include "commande.h"
 
 /* Helper local partage par la fiche et les formulaires de saisie. */
 static int lireChamp(const char *invite, char *destination, size_t capacite);
+
+static int saisirAdresse(Adresse *adresse)
+{
+    return adresse != NULL
+        && lireChamp("Rue : ", adresse->rue, sizeof adresse->rue)
+        && lireChamp("Ville : ", adresse->ville, sizeof adresse->ville)
+        && lireChamp("Code postal (5 chiffres) : ", adresse->codePostal,
+                     sizeof adresse->codePostal)
+        && lireChamp("Pays : ", adresse->pays, sizeof adresse->pays);
+}
 
 void afficherFicheClient(const Boutique *b)
 {
@@ -40,8 +51,10 @@ void afficherFicheClient(const Boutique *b)
     printf("%s, %s %s, %s\n", client->adresse.rue,
            client->adresse.codePostal, client->adresse.ville,
            client->adresse.pays);
-    printf("Commandes : %d | Chiffre d'affaires : %.2f EUR\n",
+    printf("Points de fidelite : %d\n", client->pointsFidelite);
+    printf("Commandes : %d | Chiffre d'affaires : %.2f EUR HT\n",
            client->nbCommandes, chiffreAffairesClient(client));
+    afficherHistoriqueCommandes(client);
 }
 
 /* Lit une ligne complete et refuse les champs trop longs. */
@@ -95,14 +108,7 @@ void menuAjouterClient(Boutique *b)
         || !lireChamp("Email : ", client.email, sizeof client.email)
         || !lireChamp("Telephone (10 chiffres) : ", client.telephone,
                       sizeof client.telephone)
-        || !lireChamp("Rue : ", client.adresse.rue, sizeof client.adresse.rue)
-        || !lireChamp("Ville : ", client.adresse.ville,
-                      sizeof client.adresse.ville)
-        || !lireChamp("Code postal (5 chiffres) : ",
-                      client.adresse.codePostal,
-                      sizeof client.adresse.codePostal)
-        || !lireChamp("Pays : ", client.adresse.pays,
-                      sizeof client.adresse.pays)) {
+        || !saisirAdresse(&client.adresse)) {
         puts("Saisie interrompue ou trop longue; client non cree.");
         return;
     }
@@ -160,15 +166,7 @@ void menuModifierClient(Boutique *b)
         || !lireChamp("Email : ", infos.email, sizeof infos.email)
         || !lireChamp("Telephone (10 chiffres) : ", infos.telephone,
                       sizeof infos.telephone)
-        || !lireChamp("Rue : ", infos.adresse.rue,
-                      sizeof infos.adresse.rue)
-        || !lireChamp("Ville : ", infos.adresse.ville,
-                      sizeof infos.adresse.ville)
-        || !lireChamp("Code postal (5 chiffres) : ",
-                      infos.adresse.codePostal,
-                      sizeof infos.adresse.codePostal)
-        || !lireChamp("Pays : ", infos.adresse.pays,
-                      sizeof infos.adresse.pays)) {
+        || !saisirAdresse(&infos.adresse)) {
         puts("Saisie interrompue ou trop longue; modification annulee.");
         return;
     }

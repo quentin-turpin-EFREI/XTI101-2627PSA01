@@ -7,5 +7,6 @@
 CodeRetour creerCommande(Boutique *boutique, int idClient,
                          int *numeroCommande);
 void recalculerMontantsCommande(Commande *commande);
+void afficherHistoriqueCommandes(const Client *client);
 
 #endif /* COMMANDE_H */

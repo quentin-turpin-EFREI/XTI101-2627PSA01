@@ -16,8 +16,12 @@ int emailExiste(const Boutique *b, const char *email, int idIgnore);
 CodeRetour modifierClient(Boutique *b, int idClient, const Client *infos);
 CodeRetour supprimerClient(Boutique *b, int idClient);
 float chiffreAffairesClient(const Client *client);
+void ajouterPointsFidelite(Client *client, float montantTTC);
+void retirerPointsFidelite(Client *client, float montantTTC);
+void libererClient(Client *client);
 
 /* Affichage des donnees clients (client_affichage.c). */
+void afficherClient(const Client *client);
 void afficherListeClients(const Boutique *b);
 
 /* Fiche interactive et formulaires (client_saisie.c). */

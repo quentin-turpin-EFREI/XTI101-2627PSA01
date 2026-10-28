@@ -1,6 +1,7 @@
 /* client.c - regles metier et gestion des donnees clients. */
 #include <ctype.h>
 #include <limits.h>
+#include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -259,4 +260,69 @@ float chiffreAffairesClient(const Client *client)
     }
 
     return total;
+}
+
+/* Convertit un montant TTC en points, apres arrondi au centime. */
+static int pointsPourMontant(float montantTTC)
+{
+    long long montantCentimes;
+
+    if (!isfinite(montantTTC) || montantTTC <= 0.0f)
+        return 0;
+
+    /* Au-dela, le nombre de points ne peut de toute facon pas tenir dans int. */
+    if ((double)montantTTC >= (double)INT_MAX * 10.0)
+        return INT_MAX;
+
+    montantCentimes = (long long)((double)montantTTC * 100.0 + 0.5);
+    return (int)(montantCentimes / 1000);
+}
+
+void ajouterPointsFidelite(Client *client, float montantTTC)
+{
+    int points;
+
+    if (client == NULL)
+        return;
+
+    points = pointsPourMontant(montantTTC);
+    if (client->pointsFidelite < 0)
+        client->pointsFidelite = 0;
+    if (points > INT_MAX - client->pointsFidelite)
+        client->pointsFidelite = INT_MAX;
+    else
+        client->pointsFidelite += points;
+}
+
+void retirerPointsFidelite(Client *client, float montantTTC)
+{
+    int points;
+
+    if (client == NULL)
+        return;
+
+    points = pointsPourMontant(montantTTC);
+    if (client->pointsFidelite <= 0 || points >= client->pointsFidelite)
+        client->pointsFidelite = 0;
+    else
+        client->pointsFidelite -= points;
+}
+
+void libererClient(Client *client)
+{
+    int i;
+
+    if (client == NULL)
+        return;
+
+    if (client->commandes != NULL && client->nbCommandes >= 0
+        && client->nbCommandes <= client->capaciteCommandes) {
+        for (i = 0; i < client->nbCommandes; i++)
+            free(client->commandes[i].lignes);
+    }
+
+    free(client->commandes);
+    client->commandes = NULL;
+    client->nbCommandes = 0;
+    client->capaciteCommandes = 0;
 }
