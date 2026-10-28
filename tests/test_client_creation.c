@@ -83,6 +83,10 @@ static void testValidationChamps(void)
     assert(ajouterClient(&boutique, &client, &id) == ERR_INVALIDE);
 
     client = clientValide();
+    client.email[0] = '\0';
+    assert(ajouterClient(&boutique, &client, &id) == ERR_INVALIDE);
+
+    client = clientValide();
     strcpy(client.email, "email-invalide");
     assert(ajouterClient(&boutique, &client, &id) == ERR_INVALIDE);
 

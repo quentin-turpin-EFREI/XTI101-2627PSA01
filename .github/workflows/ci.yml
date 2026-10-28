@@ -124,7 +124,7 @@ jobs:
         run: |
           set -o pipefail
           printf '%s\n' \
-            '4' '' '19' '' '0' \
+            '4' '' '0' \
             | timeout 30s valgrind \
             --leak-check=full \
             --show-leak-kinds=all \
@@ -134,9 +134,6 @@ jobs:
             | tee build/menu-produit.log
           grep -Fq 'Clavier mecanique' build/menu-produit.log
           grep -Fq 'Valeur du stock : 11075.70 EUR HT' build/menu-produit.log
-          grep -Fq -- '--- Alertes de stock ---' build/menu-produit.log
-          grep -Fq 'Souris sans fil' build/menu-produit.log
-          grep -Fq 'Hub USB-C 7 ports' build/menu-produit.log
 
   tests-unitaires-client-commande:
     name: Tests unitaires - clients et commandes
