@@ -7,32 +7,47 @@
 
 #include "produit.h"
 
+/* Verifie que le texte contient autre chose que des espaces. */
 static int textePresent(const char *texte)
 {
-    if (texte == NULL)
+    int i;
+
+    if (texte == NULL) {
         return 0;
-    while (*texte != '\0') {
-        if (!isspace((unsigned char)*texte))
+    }
+    for (i = 0; texte[i] != '\0'; i++) {
+        if (texte[i] != ' ' && texte[i] != '\t'
+            && texte[i] != '\n' && texte[i] != '\r'
+            && texte[i] != '\v' && texte[i] != '\f') {
             return 1;
-        texte++;
+        }
     }
     return 0;
 }
 
+/* malloc cree le tableau ; realloc l'agrandit quand il est plein. */
 static CodeRetour agrandirCatalogue(Boutique *boutique)
 {
     int capacite;
-    Produit *produits;
+    Produit *nouveauTableau;
 
-    if (boutique->capaciteProduits > INT_MAX / 2)
+    if (boutique->capaciteProduits == 0) {
+        capacite = CAPACITE_INITIALE;
+        nouveauTableau = malloc(capacite * sizeof(Produit));
+    } else {
+        /* Evite de depasser la plus grande valeur possible d'un int. */
+        if (boutique->capaciteProduits > INT_MAX / 2) {
+            return ERR_MEMOIRE;
+        }
+        capacite = boutique->capaciteProduits * 2;
+        nouveauTableau = realloc(boutique->produits, capacite * sizeof(Produit));
+    }
+
+    /* On garde l'ancien tableau si l'allocation echoue. */
+    if (nouveauTableau == NULL) {
         return ERR_MEMOIRE;
-    capacite = boutique->capaciteProduits == 0
-                   ? CAPACITE_INITIALE : boutique->capaciteProduits * 2;
-    produits = realloc(boutique->produits,
-                       (size_t)capacite * sizeof *produits);
-    if (produits == NULL)
-        return ERR_MEMOIRE;
-    boutique->produits = produits;
+    }
+    boutique->produits = nouveauTableau;
     boutique->capaciteProduits = capacite;
     return OK;
 }
@@ -41,11 +56,13 @@ int trouverProduit(const Boutique *boutique, const char *reference)
 {
     int i;
 
-    if (boutique == NULL || reference == NULL || reference[0] == '\0')
+    if (boutique == NULL || reference == NULL || reference[0] == '\0') {
         return -1;
+    }
     for (i = 0; i < boutique->nbProduits; i++) {
-        if (strcmp(boutique->produits[i].reference, reference) == 0)
+        if (strcmp(boutique->produits[i].reference, reference) == 0) {
             return i;
+        }
     }
     return -1;
 }
@@ -55,25 +72,38 @@ CodeRetour ajouterProduit(Boutique *boutique, const Produit *produit)
     CodeRetour resultat;
     Produit copie;
 
-    if (boutique == NULL || produit == NULL ||
-        !textePresent(produit->reference) ||
-        !textePresent(produit->designation) ||
-        !textePresent(produit->categorie) ||
-        !(produit->prixUnitaireHT > 0.0f) ||
-        produit->quantiteStock < 0 || produit->seuilAlerte < 0)
+    if (boutique == NULL || produit == NULL) {
         return ERR_INVALIDE;
-    if (trouverProduit(boutique, produit->reference) >= 0)
-        return ERR_DOUBLON;
-    if (boutique->nbProduits < 0 ||
-        boutique->nbProduits == INT_MAX ||
-        boutique->nbProduits >= boutique->capaciteProduits) {
-        resultat = agrandirCatalogue(boutique);
-        if (resultat != OK)
-            return resultat;
     }
+    if (textePresent(produit->reference) == 0
+        || textePresent(produit->designation) == 0
+        || textePresent(produit->categorie) == 0) {
+        return ERR_INVALIDE;
+    }
+    if (!(produit->prixUnitaireHT > 0) || produit->quantiteStock < 0
+        || produit->seuilAlerte < 0) {
+        return ERR_INVALIDE;
+    }
+    if (boutique->nbProduits < 0 || boutique->capaciteProduits < 0
+        || boutique->nbProduits > boutique->capaciteProduits
+        || (boutique->capaciteProduits > 0 && boutique->produits == NULL)) {
+        return ERR_INVALIDE;
+    }
+    if (trouverProduit(boutique, produit->reference) != -1) {
+        return ERR_DOUBLON;
+    }
+
+    /* Copie avant realloc, car realloc peut deplacer le tableau. */
     copie = *produit;
     copie.actif = 1;
-    boutique->produits[boutique->nbProduits++] = copie;
+    if (boutique->nbProduits == boutique->capaciteProduits) {
+        resultat = agrandirCatalogue(boutique);
+        if (resultat != OK) {
+            return resultat;
+        }
+    }
+    boutique->produits[boutique->nbProduits] = copie;
+    boutique->nbProduits++;
     return OK;
 }
 
@@ -83,35 +113,37 @@ CodeRetour modifierProduit(Boutique *boutique, const char *reference,
     int indice;
 
     if (boutique == NULL || reference == NULL || !(prix > 0.0f) ||
-        stock < 0 || seuil < 0)
+        stock < 0 || seuil < 0) {
         return ERR_INVALIDE;
+    }
     indice = trouverProduit(boutique, reference);
-    if (indice < 0 || boutique->produits[indice].actif == 0)
+    if (indice < 0 || boutique->produits[indice].actif == 0) {
         return ERR_INTROUVABLE;
+    }
     boutique->produits[indice].prixUnitaireHT = prix;
     boutique->produits[indice].quantiteStock = stock;
     boutique->produits[indice].seuilAlerte = seuil;
     return OK;
 }
 
+/* On parcourt les clients, leurs commandes, puis les lignes de commande. */
 static int produitDansCommandeActive(const Boutique *boutique,
                                      const char *reference)
 {
-    int i;
+    int i, j, k;
+    const Client *client;
+    const Commande *commande;
 
     for (i = 0; i < boutique->nbClients; i++) {
-        const Client *client = &boutique->clients[i];
-        int j;
-
+        client = &boutique->clients[i];
         for (j = 0; j < client->nbCommandes; j++) {
-            const Commande *commande = &client->commandes[j];
-            int k;
-
-            if (commande->statut == ANNULEE)
-                continue;
-            for (k = 0; k < commande->nbLignes; k++) {
-                if (strcmp(commande->lignes[k].refProduit, reference) == 0)
-                    return 1;
+            commande = &client->commandes[j];
+            if (commande->statut != ANNULEE) {
+                for (k = 0; k < commande->nbLignes; k++) {
+                    if (strcmp(commande->lignes[k].refProduit, reference) == 0) {
+                        return 1;
+                    }
+                }
             }
         }
     }
@@ -122,16 +154,20 @@ CodeRetour supprimerProduit(Boutique *boutique, const char *reference)
 {
     int indice;
 
-    if (boutique == NULL || reference == NULL)
+    if (boutique == NULL || reference == NULL) {
         return ERR_INVALIDE;
+    }
     indice = trouverProduit(boutique, reference);
-    if (indice < 0 || boutique->produits[indice].actif == 0)
+    if (indice < 0 || boutique->produits[indice].actif == 0) {
         return ERR_INTROUVABLE;
+    }
     if (boutique->nbClients < 0 ||
-        (boutique->nbClients > 0 && boutique->clients == NULL))
+        (boutique->nbClients > 0 && boutique->clients == NULL)) {
         return ERR_INVALIDE;
-    if (produitDansCommandeActive(boutique, reference))
+    }
+    if (produitDansCommandeActive(boutique, reference)) {
         return ERR_INTERDIT;
+    }
     boutique->produits[indice].actif = 0;
     return OK;
 }
@@ -141,12 +177,14 @@ float valeurStock(const Boutique *boutique)
     float total = 0.0f;
     int i;
 
-    if (boutique == NULL)
+    if (boutique == NULL) {
         return 0.0f;
+    }
     for (i = 0; i < boutique->nbProduits; i++) {
         const Produit *produit = &boutique->produits[i];
-        if (produit->actif)
+        if (produit->actif) {
             total += produit->prixUnitaireHT * produit->quantiteStock;
+        }
     }
     return total;
 }
@@ -155,13 +193,16 @@ CodeRetour retirerStock(Boutique *boutique, const char *reference, int quantite)
 {
     int indice;
 
-    if (boutique == NULL || reference == NULL || quantite <= 0)
+    if (boutique == NULL || reference == NULL || quantite <= 0) {
         return ERR_INVALIDE;
+    }
     indice = trouverProduit(boutique, reference);
-    if (indice < 0 || boutique->produits[indice].actif == 0)
+    if (indice < 0 || boutique->produits[indice].actif == 0) {
         return ERR_INTROUVABLE;
-    if (boutique->produits[indice].quantiteStock < quantite)
+    }
+    if (boutique->produits[indice].quantiteStock < quantite) {
         return ERR_INTERDIT;
+    }
     boutique->produits[indice].quantiteStock -= quantite;
     return OK;
 }
@@ -170,13 +211,16 @@ CodeRetour remettreStock(Boutique *boutique, const char *reference, int quantite
 {
     int indice;
 
-    if (boutique == NULL || reference == NULL || quantite <= 0)
+    if (boutique == NULL || reference == NULL || quantite <= 0) {
         return ERR_INVALIDE;
+    }
     indice = trouverProduit(boutique, reference);
-    if (indice < 0)
+    if (indice < 0) {
         return ERR_INTROUVABLE;
-    if (boutique->produits[indice].quantiteStock > INT_MAX - quantite)
+    }
+    if (boutique->produits[indice].quantiteStock > INT_MAX - quantite) {
         return ERR_INVALIDE;
+    }
     boutique->produits[indice].quantiteStock += quantite;
     return OK;
 }
@@ -205,8 +249,9 @@ void afficherCatalogue(const Boutique *boutique)
             }
         }
     }
-    if (affiches == 0)
+    if (affiches == 0) {
         puts("Aucun produit actif.");
+    }
     printf("Valeur du stock : %.2f EUR HT\n", valeurStock(boutique));
 }
 
@@ -226,8 +271,9 @@ void afficherAlertesStock(const Boutique *boutique)
             }
         }
     }
-    if (alertes == 0)
+    if (alertes == 0) {
         puts("Aucune alerte de stock.");
+            }
 }
 
 static int lireLigne(const char *invite, char *buffer, size_t taille)
@@ -236,14 +282,16 @@ static int lireLigne(const char *invite, char *buffer, size_t taille)
     int c;
 
     printf("%s", invite);
-    if (fgets(buffer, (int)taille, stdin) == NULL)
+    if (fgets(buffer, (int)taille, stdin) == NULL) {
         return 0;
+    }
     longueur = strlen(buffer);
     if (longueur > 0 && buffer[longueur - 1] == '\n') {
         buffer[longueur - 1] = '\0';
     } else {
-        while ((c = getchar()) != '\n' && c != EOF)
-            ;
+        while ((c = getchar()) != '\n' && c != EOF) {
+            /* Vide les caracteres restants de la ligne. */
+        }
     }
     return 1;
 }
@@ -253,9 +301,13 @@ static int lireEntier(const char *invite, int *valeur)
     char saisie[64];
     char reste;
 
-    if (!lireLigne(invite, saisie, sizeof saisie) ||
-        sscanf(saisie, " %d %c", valeur, &reste) != 1)
+    if (lireLigne(invite, saisie, sizeof saisie) == 0) {
         return 0;
+    }
+    /* %c detecte un caractere en trop : "12abc" doit etre refuse. */
+    if (sscanf(saisie, " %d %c", valeur, &reste) != 1) {
+        return 0;
+    }
     return 1;
 }
 
@@ -264,9 +316,12 @@ static int lirePrix(const char *invite, float *valeur)
     char saisie[64];
     char reste;
 
-    if (!lireLigne(invite, saisie, sizeof saisie) ||
-        sscanf(saisie, " %f %c", valeur, &reste) != 1)
+    if (lireLigne(invite, saisie, sizeof saisie) == 0) {
         return 0;
+    }
+    if (sscanf(saisie, " %f %c", valeur, &reste) != 1) {
+        return 0;
+    }
     return 1;
 }
 
@@ -286,9 +341,15 @@ void menuAjouterProduit(Boutique *boutique)
         return;
     }
     resultat = ajouterProduit(boutique, &produit);
-    puts(resultat == OK ? "Produit ajoute." : resultat == ERR_DOUBLON
-             ? "Cette reference existe deja." : resultat == ERR_MEMOIRE
-                   ? "Memoire insuffisante." : "Produit invalide.");
+    if (resultat == OK) {
+        printf("Produit ajoute.\n");
+    } else if (resultat == ERR_DOUBLON) {
+        printf("Cette reference existe deja.\n");
+    } else if (resultat == ERR_MEMOIRE) {
+        printf("Memoire insuffisante.\n");
+    } else {
+        printf("Produit invalide.\n");
+    }
 }
 
 void menuModifierProduit(Boutique *boutique)
@@ -308,9 +369,13 @@ void menuModifierProduit(Boutique *boutique)
         return;
     }
     resultat = modifierProduit(boutique, reference, prix, stock, seuil);
-    puts(resultat == OK ? "Produit mis a jour." :
-         resultat == ERR_INTROUVABLE ? "Produit actif introuvable." :
-         "Valeurs invalides.");
+    if (resultat == OK) {
+        printf("Produit mis a jour.\n");
+    } else if (resultat == ERR_INTROUVABLE) {
+        printf("Produit actif introuvable.\n");
+    } else {
+        printf("Valeurs invalides.\n");
+    }
 }
 
 void menuSupprimerProduit(Boutique *boutique)
@@ -324,27 +389,36 @@ void menuSupprimerProduit(Boutique *boutique)
         return;
     }
     resultat = supprimerProduit(boutique, reference);
-    puts(resultat == OK ? "Produit supprime (suppression logique)." :
-         resultat == ERR_INTERDIT ? "Suppression refusee : une commande le reference." :
-         resultat == ERR_INTROUVABLE ? "Produit actif introuvable." :
-         "Donnees invalides.");
+    if (resultat == OK) {
+        printf("Produit supprime (suppression logique).\n");
+    } else if (resultat == ERR_INTERDIT) {
+        printf("Suppression refusee : une commande le reference.\n");
+    } else if (resultat == ERR_INTROUVABLE) {
+        printf("Produit actif introuvable.\n");
+    } else {
+        printf("Donnees invalides.\n");
+    }
 }
 
+/* Copie les deux textes en minuscules, puis cherche le mot avec strstr.
+ * Ces textes sont limites a TAILLE_DESIGNATION caracteres, '\0' compris. */
 static int contientSansCasse(const char *texte, const char *mot)
 {
-    size_t longueurMot = strlen(mot);
-    const char *debut;
+    char texteMinuscule[TAILLE_DESIGNATION];
+    char motMinuscule[TAILLE_DESIGNATION];
+    int i;
 
-    if (longueurMot == 0)
+    strcpy(texteMinuscule, texte);
+    strcpy(motMinuscule, mot);
+    /* unsigned char permet a tolower de recevoir une valeur valide. */
+    for (i = 0; texteMinuscule[i] != '\0'; i++) {
+        texteMinuscule[i] = tolower((unsigned char)texteMinuscule[i]);
+    }
+    for (i = 0; motMinuscule[i] != '\0'; i++) {
+        motMinuscule[i] = tolower((unsigned char)motMinuscule[i]);
+    }
+    if (strstr(texteMinuscule, motMinuscule) != NULL) {
         return 1;
-    for (debut = texte; *debut != '\0'; debut++) {
-        size_t i = 0;
-        while (i < longueurMot && debut[i] != '\0' &&
-               tolower((unsigned char)debut[i]) ==
-                   tolower((unsigned char)mot[i]))
-            i++;
-        if (i == longueurMot)
-            return 1;
     }
     return 0;
 }
@@ -357,17 +431,20 @@ void menuRechercherProduit(const Boutique *boutique)
     int trouves = 0;
 
     if (boutique == NULL || !lireLigne("1. Reference exacte  2. Mot-cle : ",
-                                       choix, sizeof choix))
+                                       choix, sizeof choix)) {
         return;
+    }
     if (strcmp(choix, "1") == 0) {
         int indice;
-        if (!lireLigne("Reference : ", recherche, sizeof recherche))
+        if (!lireLigne("Reference : ", recherche, sizeof recherche)) {
             return;
+        }
         indice = trouverProduit(boutique, recherche);
-        if (indice >= 0 && boutique->produits[indice].actif)
+        if (indice >= 0 && boutique->produits[indice].actif) {
             afficherProduit(&boutique->produits[indice]);
-        else
+        } else {
             puts("Produit actif introuvable.");
+        }
         return;
     }
     if (strcmp(choix, "2") != 0 ||
@@ -384,6 +461,7 @@ void menuRechercherProduit(const Boutique *boutique)
             trouves++;
         }
     }
-    if (trouves == 0)
+    if (trouves == 0) {
         puts("Aucun produit correspondant.");
+    }
 }
