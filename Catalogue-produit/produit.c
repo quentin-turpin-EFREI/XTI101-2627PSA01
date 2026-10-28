@@ -1,5 +1,6 @@
 /* produit.c - V1 : ajout et affichage du catalogue */
 #include <stdio.h>
+#include <math.h>
 #include <stdlib.h>
 #include <string.h>
 #include "produit.h"
@@ -21,7 +22,8 @@ CodeRetour ajouterProduit(Boutique *boutique, const Produit *produit)
     Produit *nouveauTableau;
     int capacite;
     if (produit->reference[0] == '\0' || produit->designation[0] == '\0'
-        || produit->categorie[0] == '\0' || produit->prixUnitaireHT <= 0
+        || produit->categorie[0] == '\0' || !(produit->prixUnitaireHT > 0.0f)
+        || !isfinite(produit->prixUnitaireHT)
         || produit->quantiteStock < 0 || produit->seuilAlerte < 0) {
         return ERR_INVALIDE;
     }

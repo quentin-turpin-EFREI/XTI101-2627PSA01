@@ -41,12 +41,22 @@ static int emailsEgaux(const char *a, const char *b)
 static int emailValide(const char *email)
 {
     const char *arobase;
+    const char *curseur;
 
     if (!chaineNonVide(email, TAILLE_EMAIL))
         return 0;
 
     arobase = strchr(email, '@');
-    return arobase != NULL && arobase != email && arobase[1] != '\0';
+    if (arobase == NULL || arobase == email || arobase[1] == '\0'
+        || strchr(arobase + 1, '@') != NULL)
+        return 0;
+
+    for (curseur = email; *curseur != '\0'; curseur++) {
+        if (isspace((unsigned char)*curseur))
+            return 0;
+    }
+
+    return 1;
 }
 
 /* Le telephone et le code postal doivent contenir exactement des chiffres. */

@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,6 +22,12 @@ int main(void)
     /* Champs obligatoires et valeurs numeriques. */
     strcpy(produit.reference, "PRD-0002");
     produit.prixUnitaireHT = 0;
+    assert(ajouterProduit(&boutique, &produit) == ERR_INVALIDE);
+    produit.prixUnitaireHT = -1.0f;
+    assert(ajouterProduit(&boutique, &produit) == ERR_INVALIDE);
+    produit.prixUnitaireHT = NAN;
+    assert(ajouterProduit(&boutique, &produit) == ERR_INVALIDE);
+    produit.prixUnitaireHT = INFINITY;
     assert(ajouterProduit(&boutique, &produit) == ERR_INVALIDE);
     produit.prixUnitaireHT = 20;
     produit.quantiteStock = -1;

@@ -95,6 +95,8 @@ void recalculerMontantsCommande(Commande *commande)
 static const char *nomStatutCommande(StatutCommande statut)
 {
     switch (statut) {
+        case EN_ATTENTE:
+            return "En attente";
         case EN_COURS:
             return "En cours";
         case LIVREE:

@@ -45,7 +45,8 @@ typedef struct {
 typedef enum {
     EN_COURS = 0,
     LIVREE,
-    ANNULEE
+    ANNULEE,
+    EN_ATTENTE
 } StatutCommande;
 
 typedef struct {

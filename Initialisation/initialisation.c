@@ -1,104 +1,178 @@
-/* initialisation.c - jeu de donnees de demonstration charge en memoire. */
+/* initialisation.c - jeu complet de donnees de demonstration. */
 #include <stdlib.h>
 #include <string.h>
 
 #include "initialisation.h"
 #include "client.h"
+#include "commande.h"
+#include "produit.h"
 
-static void remplirClient(Client *client,
-                          const char *nom,
-                          const char *prenom,
-                          const char *email,
-                          const char *telephone,
-                          const char *rue,
-                          const char *ville,
-                          const char *codePostal,
-                          const char *pays)
-{
-    strcpy(client->nom, nom);
-    strcpy(client->prenom, prenom);
-    strcpy(client->email, email);
-    strcpy(client->telephone, telephone);
-    strcpy(client->adresse.rue, rue);
-    strcpy(client->adresse.ville, ville);
-    strcpy(client->adresse.codePostal, codePostal);
-    strcpy(client->adresse.pays, pays);
-}
+typedef struct {
+    const char *nom;
+    const char *prenom;
+    const char *email;
+    const char *telephone;
+    const char *rue;
+    const char *ville;
+    const char *codePostal;
+    const char *pays;
+} ClientDemo;
+
+typedef struct {
+    int idClient;
+    StatutCommande statut;
+    const LigneCommande *lignes;
+    int nbLignes;
+} CommandeDemo;
 
 static CodeRetour ajouterClientDemo(Boutique *boutique,
-                                    const Client *infos,
-                                    const Commande *commandes,
-                                    int nbCommandes)
+                                    const ClientDemo *demo)
 {
-    Commande *copiesCommandes = NULL;
+    Client client = {0};
     int idAttribue;
+
+    strcpy(client.nom, demo->nom);
+    strcpy(client.prenom, demo->prenom);
+    strcpy(client.email, demo->email);
+    strcpy(client.telephone, demo->telephone);
+    strcpy(client.adresse.rue, demo->rue);
+    strcpy(client.adresse.ville, demo->ville);
+    strcpy(client.adresse.codePostal, demo->codePostal);
+    strcpy(client.adresse.pays, demo->pays);
+
+    return ajouterClient(boutique, &client, &idAttribue);
+}
+
+static CodeRetour ajouterCommandeDemo(Boutique *boutique,
+                                      const CommandeDemo *demo)
+{
+    int numero;
+    int indiceClient;
+    Client *client;
+    Commande *commande;
+    int i;
     CodeRetour resultat;
 
-    if (nbCommandes > 0) {
-        copiesCommandes = malloc((size_t)nbCommandes * sizeof *copiesCommandes);
-        if (copiesCommandes == NULL)
-            return ERR_MEMOIRE;
-        memcpy(copiesCommandes, commandes,
-               (size_t)nbCommandes * sizeof *copiesCommandes);
-    }
+    if (demo == NULL || demo->lignes == NULL || demo->nbLignes <= 0)
+        return ERR_INVALIDE;
 
-    resultat = ajouterClient(boutique, infos, &idAttribue);
-    if (resultat != OK) {
-        free(copiesCommandes);
+    resultat = creerCommande(boutique, demo->idClient, &numero);
+    if (resultat != OK)
         return resultat;
+
+    indiceClient = trouverClient(boutique, demo->idClient);
+    if (indiceClient < 0)
+        return ERR_INVALIDE;
+
+    client = &boutique->clients[indiceClient];
+    commande = &client->commandes[client->nbCommandes - 1];
+    commande->lignes = malloc((size_t)demo->nbLignes
+                              * sizeof *commande->lignes);
+    if (commande->lignes == NULL)
+        return ERR_MEMOIRE;
+
+    for (i = 0; i < demo->nbLignes; i++) {
+        int indiceProduit = trouverProduit(boutique,
+                                           demo->lignes[i].refProduit);
+
+        if (indiceProduit < 0 || !boutique->produits[indiceProduit].actif
+            || demo->lignes[i].quantite <= 0)
+            return ERR_INVALIDE;
+        commande->lignes[i] = demo->lignes[i];
     }
 
-    boutique->clients[boutique->nbClients - 1].commandes = copiesCommandes;
-    boutique->clients[boutique->nbClients - 1].nbCommandes = nbCommandes;
-    boutique->clients[boutique->nbClients - 1].capaciteCommandes = nbCommandes;
+    commande->nbLignes = demo->nbLignes;
+    commande->capaciteLignes = demo->nbLignes;
+    commande->statut = demo->statut;
+    recalculerMontantsCommande(commande);
     return OK;
 }
 
 CodeRetour initialiserDonneesTest(Boutique *boutique)
 {
     Boutique donnees = {0};
-    Client client = {0};
-    Commande commandesAline[] = {
-        {1001, EN_COURS, 149.90f, NULL, 0, 0},
-        {1002, ANNULEE, 39.90f, NULL, 0, 0}
+    static const Produit produitsDemo[NB_PRODUITS_DEMO] = {
+        {"PRD-0001", "Clavier mecanique",  "Informatique",  79.90f,  42, 10, 1},
+        {"PRD-0002", "Souris sans fil",    "Informatique",  24.50f,   8, 15, 1},
+        {"PRD-0003", "Ecran 27 pouces",    "Informatique", 199.00f,   6,  5, 1},
+        {"PRD-0004", "Casque audio",       "Audio",         89.50f,  25, 10, 1},
+        {"PRD-0005", "Enceinte Bluetooth", "Audio",         59.90f,  12,  8, 1},
+        {"PRD-0006", "Cable HDMI 2 m",     "Accessoires",   10.10f, 120, 30, 1},
+        {"PRD-0007", "Hub USB-C 7 ports",  "Accessoires",   49.90f,   4, 10, 1},
+        {"PRD-0008", "Disque SSD 1 To",    "Stockage",     109.00f,  18,  6, 1}
     };
-    Commande commandeKarim[] = {
-        {1003, LIVREE, 89.50f, NULL, 0, 0}
+    static const ClientDemo clientsDemo[NB_CLIENTS_DEMO] = {
+        {"Martin", "Aline", "aline.martin@example.fr", "0611111111",
+         "10 rue Victor Hugo", "Paris", "75001", "France"},
+        {"Bernard", "Karim", "karim.bernard@example.fr", "0622222222",
+         "24 avenue des Fleurs", "Lyon", "69001", "France"},
+        {"Leroy", "Sophie", "sophie.leroy@example.fr", "0633333333",
+         "8 place du Marche", "Nantes", "44000", "France"},
+        {"Petit", "Julie", "julie.petit@example.fr", "0644444444",
+         "3 rue des Lilas", "Bordeaux", "33000", "France"},
+        {"Moreau", "Hugo", "hugo.moreau@example.fr", "0655555555",
+         "17 boulevard Victor", "Lille", "59000", "France"}
     };
-    Commande commandeSophie[] = {
-        {1004, ANNULEE, 30.00f, NULL, 0, 0}
+    static const LigneCommande lignesAline[] = {
+        {"PRD-0001", 79.90f, 1},
+        {"PRD-0005", 59.90f, 1},
+        {"PRD-0006", 10.10f, 1}
+    };
+    static const LigneCommande lignesAnnulee[] = {
+        {"PRD-0006", 10.10f, 4}
+    };
+    static const LigneCommande lignesKarim[] = {
+        {"PRD-0004", 89.50f, 1}
+    };
+    static const LigneCommande lignesSophie[] = {
+        {"PRD-0002", 24.50f, 1},
+        {"PRD-0006", 10.10f, 1}
+    };
+    static const LigneCommande lignesJulie[] = {
+        {"PRD-0002", 24.50f, 1},
+        {"PRD-0005", 59.90f, 2},
+        {"PRD-0007", 49.90f, 1}
+    };
+    static const LigneCommande lignesHugo[] = {
+        {"PRD-0003", 199.00f, 2},
+        {"PRD-0008", 109.00f, 2},
+        {"PRD-0001", 79.90f, 2}
+    };
+    static const CommandeDemo commandesDemo[NB_COMMANDES_DEMO] = {
+        {1, EN_COURS, lignesAline, 3},
+        {1, ANNULEE, lignesAnnulee, 1},
+        {2, LIVREE, lignesKarim, 1},
+        {3, ANNULEE, lignesSophie, 2},
+        {4, EN_ATTENTE, lignesJulie, 3},
+        {5, LIVREE, lignesHugo, 3}
     };
     CodeRetour resultat;
+    int i;
 
     if (boutique == NULL)
         return ERR_INVALIDE;
 
-    donnees.idClientSuivant = 1;
-    donnees.numeroSuivant = 1005;
     strcpy(donnees.nom, "ShopFlow Demo");
+    donnees.idClientSuivant = 1;
+    donnees.numeroSuivant = 1001;
 
-    remplirClient(&client, "Martin", "Aline", "aline.martin@example.fr",
-                  "0611111111", "10 rue Victor Hugo", "Paris", "75001",
-                  "France");
-    resultat = ajouterClientDemo(&donnees, &client, commandesAline, 2);
-    if (resultat != OK)
-        goto erreur;
+    for (i = 0; i < NB_PRODUITS_DEMO; i++) {
+        resultat = ajouterProduit(&donnees, &produitsDemo[i]);
+        if (resultat != OK)
+            goto erreur;
+    }
 
-    memset(&client, 0, sizeof client);
-    remplirClient(&client, "Bernard", "Karim", "karim.bernard@example.fr",
-                  "0622222222", "24 avenue des Fleurs", "Lyon", "69001",
-                  "France");
-    resultat = ajouterClientDemo(&donnees, &client, commandeKarim, 1);
-    if (resultat != OK)
-        goto erreur;
+    for (i = 0; i < NB_CLIENTS_DEMO; i++) {
+        resultat = ajouterClientDemo(&donnees, &clientsDemo[i]);
+        if (resultat != OK)
+            goto erreur;
+    }
 
-    memset(&client, 0, sizeof client);
-    remplirClient(&client, "Leroy", "Sophie", "sophie.leroy@example.fr",
-                  "0633333333", "8 place du Marche", "Nantes", "44000",
-                  "France");
-    resultat = ajouterClientDemo(&donnees, &client, commandeSophie, 1);
-    if (resultat != OK)
-        goto erreur;
+    for (i = 0; i < NB_COMMANDES_DEMO; i++) {
+        resultat = ajouterCommandeDemo(&donnees, &commandesDemo[i]);
+        if (resultat != OK)
+            goto erreur;
+    }
 
     *boutique = donnees;
     return OK;
@@ -115,8 +189,11 @@ void detruireBoutique(Boutique *boutique)
     if (boutique == NULL)
         return;
 
-    for (i = 0; i < boutique->nbClients; i++)
-        libererClient(&boutique->clients[i]);
+    if (boutique->clients != NULL && boutique->nbClients >= 0
+        && boutique->nbClients <= boutique->capaciteClients) {
+        for (i = 0; i < boutique->nbClients; i++)
+            libererClient(&boutique->clients[i]);
+    }
 
     free(boutique->clients);
     free(boutique->produits);

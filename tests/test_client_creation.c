@@ -87,11 +87,43 @@ static void testValidationChamps(void)
     assert(ajouterClient(&boutique, &client, &id) == ERR_INVALIDE);
 
     client = clientValide();
+    strcpy(client.email, "julie@@example.fr");
+    assert(ajouterClient(&boutique, &client, &id) == ERR_INVALIDE);
+
+    client = clientValide();
+    strcpy(client.email, "@example.fr");
+    assert(ajouterClient(&boutique, &client, &id) == ERR_INVALIDE);
+
+    client = clientValide();
+    strcpy(client.email, "julie@");
+    assert(ajouterClient(&boutique, &client, &id) == ERR_INVALIDE);
+
+    client = clientValide();
+    strcpy(client.email, "julie bernard@example.fr");
+    assert(ajouterClient(&boutique, &client, &id) == ERR_INVALIDE);
+
+    client = clientValide();
     strcpy(client.telephone, "06123x5678");
     assert(ajouterClient(&boutique, &client, &id) == ERR_INVALIDE);
 
     client = clientValide();
+    strcpy(client.telephone, "061234567");
+    assert(ajouterClient(&boutique, &client, &id) == ERR_INVALIDE);
+
+    client = clientValide();
+    strcpy(client.telephone, "06123456789");
+    assert(ajouterClient(&boutique, &client, &id) == ERR_INVALIDE);
+
+    client = clientValide();
     strcpy(client.adresse.codePostal, "7500");
+    assert(ajouterClient(&boutique, &client, &id) == ERR_INVALIDE);
+
+    client = clientValide();
+    strcpy(client.adresse.codePostal, "75A02");
+    assert(ajouterClient(&boutique, &client, &id) == ERR_INVALIDE);
+
+    client = clientValide();
+    client.adresse.rue[0] = '\0';
     assert(ajouterClient(&boutique, &client, &id) == ERR_INVALIDE);
 
     assert(boutique.nbClients == 0);
@@ -225,13 +257,69 @@ static void testChiffreAffairesEtListe(void)
 static void testInitialisationDonneesDemo(void)
 {
     Boutique boutique = {0};
+    int nombreCommandes = 0;
+    int commandesAvecTroisLignes = 0;
+    int commandesAuDessusDe600 = 0;
+    int statutsVus[4] = {0};
+    int alertesStock = 0;
+    int categoriesDifferentes = 0;
+    int i;
 
     assert(initialiserDonneesTest(&boutique) == OK);
-    assert(boutique.nbClients == 3);
-    assert(boutique.idClientSuivant == 4);
-    assert(boutique.numeroSuivant == 1005);
+    assert(boutique.nbProduits == NB_PRODUITS_DEMO);
+    assert(boutique.nbClients == NB_CLIENTS_DEMO);
+    assert(boutique.idClientSuivant == NB_CLIENTS_DEMO + 1);
+    assert(boutique.numeroSuivant == 1001 + NB_COMMANDES_DEMO);
+
+    for (i = 0; i < boutique.nbProduits; i++) {
+        int j;
+        int nouvelleCategorie = 1;
+
+        if (boutique.produits[i].quantiteStock
+            <= boutique.produits[i].seuilAlerte)
+            alertesStock++;
+        for (j = 0; j < i; j++) {
+            if (strcmp(boutique.produits[i].categorie,
+                       boutique.produits[j].categorie) == 0) {
+                nouvelleCategorie = 0;
+                break;
+            }
+        }
+        categoriesDifferentes += nouvelleCategorie;
+    }
+    assert(alertesStock >= 2);
+    assert(categoriesDifferentes >= 3);
+
+    for (i = 0; i < boutique.nbClients; i++) {
+        int j;
+
+        assert(boutique.clients[i].idClient == i + 1);
+        assert(boutique.clients[i].adresse.rue[0] != '\0');
+        assert(boutique.clients[i].adresse.ville[0] != '\0');
+        assert(boutique.clients[i].adresse.codePostal[0] != '\0');
+        assert(boutique.clients[i].adresse.pays[0] != '\0');
+        nombreCommandes += boutique.clients[i].nbCommandes;
+        for (j = 0; j < boutique.clients[i].nbCommandes; j++) {
+            const Commande *commande = &boutique.clients[i].commandes[j];
+
+            assert(commande->statut >= EN_COURS
+                   && commande->statut <= EN_ATTENTE);
+            statutsVus[commande->statut] = 1;
+            commandesAvecTroisLignes += commande->nbLignes >= 3;
+            commandesAuDessusDe600 += commande->montantHT > 600.0f;
+        }
+    }
+    assert(nombreCommandes == NB_COMMANDES_DEMO);
+    assert(commandesAvecTroisLignes >= 2);
+    assert(commandesAuDessusDe600 >= 1);
+    assert(statutsVus[EN_COURS]);
+    assert(statutsVus[LIVREE]);
+    assert(statutsVus[ANNULEE]);
+    assert(statutsVus[EN_ATTENTE]);
+
     assert(boutique.clients[0].nbCommandes == 2);
-    assert(chiffreAffairesClient(&boutique.clients[0]) == 149.90f);
+    assert(chiffreAffairesClient(&boutique.clients[0]) > 149.89f);
+    assert(chiffreAffairesClient(&boutique.clients[0]) < 149.91f);
     assert(boutique.clients[1].nbCommandes == 1);
     assert(chiffreAffairesClient(&boutique.clients[1]) == 89.50f);
     assert(boutique.clients[2].nbCommandes == 1);
@@ -255,8 +343,8 @@ static void testCreerCommande(void)
     assert(initialiserDonneesTest(&boutique) == OK);
     assert(trouverClient(&boutique, 1) == 0);
     assert(creerCommande(&boutique, 1, &numero) == OK);
-    assert(numero == 1005);
-    assert(boutique.numeroSuivant == 1006);
+    assert(numero == 1007);
+    assert(boutique.numeroSuivant == 1008);
     assert(boutique.clients[0].nbCommandes == 3);
 
     commande = &boutique.clients[0].commandes[2];

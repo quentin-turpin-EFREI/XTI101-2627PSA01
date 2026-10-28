@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
+#include <errno.h>
+#include <limits.h>
 #include "types.h"
 #include "produit.h"
 #include "client.h"
@@ -16,7 +19,9 @@
 static int afficherMenu(void)
 {
     char saisie[16];
+    char *fin;
     int choix;
+    long valeur;
 
     printf("\n========================================\n");
     printf("           SHOPFLOW - MENU\n");
@@ -60,13 +65,26 @@ static int afficherMenu(void)
     /* Ligne trop longue : on vide le reste du buffer */
     if (strchr(saisie, '\n') == NULL) {
         int c;
+        int ligneTropLongue = 0;
+
         while ((c = getchar()) != '\n' && c != EOF)
-            ;
+            ligneTropLongue = 1;
+        if (ligneTropLongue)
+            return -1;
     }
 
-    if (sscanf(saisie, "%d", &choix) != 1)
+    errno = 0;
+    valeur = strtol(saisie, &fin, 10);
+    if (fin == saisie || errno == ERANGE || valeur < INT_MIN
+        || valeur > INT_MAX)
         return -1;
 
+    while (isspace((unsigned char)*fin))
+        fin++;
+    if (*fin != '\0')
+        return -1;
+
+    choix = (int)valeur;
     return choix;
 }
 
