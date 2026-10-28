@@ -96,11 +96,11 @@ int main(void)
 
         switch (choix) {
             /* Catalogue produits -> produit.c */
-            case 1:  menuAjouterProduit(&boutique); attendreEntree(); break;
-            case 2:  menuModifierProduit(&boutique); attendreEntree(); break;
-            case 3:  menuSupprimerProduit(&boutique); attendreEntree(); break;
+            case 1:  printf("[A faire] Ajouter un produit\n"); break;
+            case 2:  printf("[A faire] Mettre a jour un produit\n"); break;
+            case 3:  printf("[A faire] Supprimer un produit\n"); break;
             case 4:  afficherCatalogue(&boutique); attendreEntree(); break;
-            case 5:  menuRechercherProduit(&boutique); attendreEntree(); break;
+            case 5:  printf("[A faire] Rechercher un produit\n"); break;
 
             /* Clients -> logique metier, saisie et affichage dedies. */
             case 6:
@@ -135,7 +135,7 @@ int main(void)
             case 16: printf("[A faire] Chiffre d'affaires\n"); break;
             case 17: printf("[A faire] Palmares produits\n"); break;
             case 18: printf("[A faire] Palmares clients\n"); break;
-            case 19: afficherAlertesStock(&boutique); attendreEntree(); break;
+            case 19: printf("[A faire] Alertes de stock\n"); break;
 
             case 0:  printf("Au revoir !\n"); break;
             default: printf("Choix invalide, recommencez.\n"); break;

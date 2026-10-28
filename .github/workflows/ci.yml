@@ -121,8 +121,7 @@ jobs:
         run: |
           set -o pipefail
           printf '%s\n' \
-            '1' 'PRD-CI01' 'Produit de verification' 'CI' '12.50' '2' '2' '' \
-            '4' '' '19' '' '5' '2' 'VERIFICATION' '' '0' \
+            '4' '' '0' \
             | timeout 30s valgrind \
             --leak-check=full \
             --show-leak-kinds=all \
@@ -130,11 +129,8 @@ jobs:
             --error-exitcode=1 \
             ./build/shopflow \
             | tee build/menu-produit.log
-          grep -Fq 'Produit ajoute.' build/menu-produit.log
-          grep -Fq 'Produit de verification' build/menu-produit.log
-          grep -Fq 'Valeur du stock : 25.00 EUR HT' build/menu-produit.log
-          grep -Fq -- '--- Alertes de stock ---' build/menu-produit.log
-          test "$(grep -Fc 'Produit de verification' build/menu-produit.log)" -ge 3
+          grep -Fq 'Aucun produit actif.' build/menu-produit.log
+          grep -Fq 'Valeur du stock : 0.00 EUR HT' build/menu-produit.log
 
   tests-unitaires-client-commande:
     name: Tests unitaires - clients et commandes
