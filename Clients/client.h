@@ -20,11 +20,11 @@ void ajouterPointsFidelite(Client *client, float montantTTC);
 void retirerPointsFidelite(Client *client, float montantTTC);
 void libererClient(Client *client);
 
-/* Affichage des donnees clients (client_affichage.c). */
+/* Affichage des donnees clients (client.c). */
 void afficherClient(const Client *client);
 void afficherListeClients(const Boutique *b);
 
-/* Fiche interactive et formulaires (client_saisie.c). */
+/* Fiche interactive et formulaires (client.c). */
 void afficherFicheClient(const Boutique *b);
 void menuAjouterClient(Boutique *b);
 void menuModifierClient(Boutique *b);

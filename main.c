@@ -1,165 +1,283 @@
-/* main.c - point d'entree : initialisation de la Boutique,
- * boucle du menu principal et liberation finale de la memoire */
+/* Point d'entree de ShopFlow : menu principal et appels aux modules. */
+#include <ctype.h>
+#include <errno.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
-#include <errno.h>
-#include <limits.h>
+
 #include "types.h"
 #include "produit.h"
 #include "client.h"
 #include "commande.h"
-#include "statistique.h"
-#include "utils.h"
 #include "initialisation.h"
 
-
-/* Affiche le menu principal et renvoie le choix saisi (-1 si saisie invalide) */
-static int afficherMenu(void)
+/* Lit une ligne complete et vide le reste si elle depasse le tampon. */
+static int lireTexte(const char *invite, char *texte, size_t capacite)
 {
-    char saisie[16];
-    char *fin;
-    int choix;
-    long valeur;
+    size_t longueur;
+    int caractere;
 
-    printf("\n========================================\n");
-    printf("           SHOPFLOW - MENU\n");
-    printf("========================================\n");
+    fputs(invite, stdout);
+    if (fgets(texte, (int)capacite, stdin) == NULL)
+        return 0;
 
-    printf("\n--- Catalogue produits ---\n");
-    printf("  1. Ajouter un produit\n");
-    printf("  2. Mettre a jour un produit\n");
-    printf("  3. Supprimer un produit\n");
-    printf("  4. Afficher le catalogue\n");
-    printf("  5. Rechercher un produit\n");
-
-    printf("\n--- Clients ---\n");
-    printf("  6. Ajouter un client\n");
-    printf("  7. Mettre a jour un client\n");
-    printf("  8. Supprimer un client\n");
-    printf("  9. Afficher la liste des clients\n");
-    printf(" 10. Afficher la fiche d'un client\n");
-
-    printf("\n--- Commandes ---\n");
-    printf(" 11. Creer une commande\n");
-    printf(" 12. Ajouter / supprimer une ligne\n");
-    printf(" 13. Changer le statut d'une commande\n");
-    printf(" 14. Annuler une commande\n");
-    printf(" 15. Afficher une commande\n");
-
-    printf("\n--- Statistiques ---\n");
-    printf(" 16. Chiffre d'affaires (total / par periode)\n");
-    printf(" 17. Palmares produits (top 5)\n");
-    printf(" 18. Palmares clients\n");
-    printf(" 19. Alertes de stock\n");
-
-    printf("\n  0. Quitter\n");
-    printf("========================================\n");
-    printf("Votre choix : ");
-
-    /* Lecture de la ligne entiere : une saisie non numerique ne bloque pas le programme */
-    if (fgets(saisie, sizeof saisie, stdin) == NULL)
-        return 0;   /* fin d'entree (EOF) : on quitte */
-
-    /* Ligne trop longue : on vide le reste du buffer */
-    if (strchr(saisie, '\n') == NULL) {
-        int c;
-        int ligneTropLongue = 0;
-
-        while ((c = getchar()) != '\n' && c != EOF)
-            ligneTropLongue = 1;
-        if (ligneTropLongue)
+    longueur = strlen(texte);
+    if (longueur > 0 && texte[longueur - 1] == '\n') {
+        texte[--longueur] = '\0';
+    } else {
+        caractere = getchar();
+        if (caractere != '\n' && caractere != EOF) {
+            do {
+                caractere = getchar();
+            } while (caractere != '\n' && caractere != EOF);
+            puts("Saisie trop longue.");
             return -1;
+        }
     }
 
-    errno = 0;
-    valeur = strtol(saisie, &fin, 10);
-    if (fin == saisie || errno == ERANGE || valeur < INT_MIN
-        || valeur > INT_MAX)
-        return -1;
+    if (longueur > 0 && texte[longueur - 1] == '\r')
+        texte[--longueur] = '\0';
+    return 1;
+}
 
+static int lireEntier(const char *invite, int *valeur)
+{
+    char texte[64];
+    char *fin;
+    long resultat;
+    int statut = lireTexte(invite, texte, sizeof texte);
+
+    if (statut <= 0)
+        return statut;
+    errno = 0;
+    resultat = strtol(texte, &fin, 10);
     while (isspace((unsigned char)*fin))
         fin++;
-    if (*fin != '\0')
+    if (texte[0] == '\0' || strlen(texte) > 15 || *fin != '\0' || errno == ERANGE
+        || resultat < -2147483647L - 1L || resultat > 2147483647L) {
+        puts("Choix invalide, recommencez.");
         return -1;
+    }
+    *valeur = (int)resultat;
+    return 1;
+}
 
-    choix = (int)valeur;
-    return choix;
+static int lireReel(const char *invite, float *valeur)
+{
+    char texte[64];
+    char *fin;
+    float resultat;
+    int statut = lireTexte(invite, texte, sizeof texte);
+
+    if (statut <= 0)
+        return statut;
+    errno = 0;
+    resultat = strtof(texte, &fin);
+    while (isspace((unsigned char)*fin))
+        fin++;
+    if (texte[0] == '\0' || *fin != '\0' || errno == ERANGE
+        || !isfinite(resultat)) {
+        puts("Valeur numerique invalide.");
+        return -1;
+    }
+    *valeur = resultat;
+    return 1;
+}
+
+static int lireChoix(void)
+{
+    int choix;
+    int statut = lireEntier("Votre choix : ", &choix);
+
+    return statut == 1 ? choix : (statut == 0 ? 0 : -1);
 }
 
 static void attendreEntree(void)
 {
-    int caractere;
+    char ligne[8];
+    (void)lireTexte("Appuyez sur Entree pour continuer...", ligne, sizeof ligne);
+}
 
-    printf("\nAppuyez sur Entree pour revenir au menu principal...");
-    fflush(stdout);
-    do {
-        caractere = getchar();
-    } while (caractere != '\n' && caractere != EOF);
+static void ajouterProduitInteractif(Boutique *boutique)
+{
+    Produit produit = {0};
+    CodeRetour resultat;
+
+    puts("\n--- Ajout d'un produit ---");
+    if (lireTexte("Reference : ", produit.reference, sizeof produit.reference) != 1
+        || lireTexte("Designation : ", produit.designation,
+                     sizeof produit.designation) != 1
+        || lireTexte("Categorie : ", produit.categorie,
+                     sizeof produit.categorie) != 1
+        || lireReel("Prix unitaire HT : ", &produit.prixUnitaireHT) != 1
+        || lireEntier("Quantite en stock : ", &produit.quantiteStock) != 1
+        || lireEntier("Seuil d'alerte : ", &produit.seuilAlerte) != 1)
+        return;
+
+    resultat = ajouterProduit(boutique, &produit);
+    switch (resultat) {
+        case OK: puts("Produit ajoute."); break;
+        case ERR_DOUBLON: puts("Cette reference existe deja."); break;
+        case ERR_MEMOIRE: puts("Memoire insuffisante pour ajouter le produit."); break;
+        default: puts("Produit invalide; il n'a pas ete ajoute."); break;
+    }
+}
+
+static void rechercherProduit(Boutique *boutique)
+{
+    char reference[TAILLE_REFERENCE];
+    int indice;
+
+    if (lireTexte("Reference du produit : ", reference, sizeof reference) != 1)
+        return;
+    indice = trouverProduit(boutique, reference);
+    if (indice < 0 || !boutique->produits[indice].actif) {
+        puts("Produit introuvable.");
+        return;
+    }
+    printf("%s - %s (%s)\nPrix HT : %.2f EUR | Stock : %d | Seuil : %d\n",
+           boutique->produits[indice].reference,
+           boutique->produits[indice].designation,
+           boutique->produits[indice].categorie,
+           boutique->produits[indice].prixUnitaireHT,
+           boutique->produits[indice].quantiteStock,
+           boutique->produits[indice].seuilAlerte);
+}
+
+static void creerCommandeInteractive(Boutique *boutique)
+{
+    int idClient;
+    int numero;
+    CodeRetour resultat;
+
+    if (lireEntier("Identifiant du client : ", &idClient) != 1)
+        return;
+    resultat = creerCommande(boutique, idClient, &numero);
+    if (resultat == OK)
+        printf("Commande %d creee (sans ligne pour le moment).\n", numero);
+    else if (resultat == ERR_INTROUVABLE)
+        puts("Client introuvable.");
+    else
+        puts("Impossible de creer la commande.");
+}
+
+static void afficherHistoriqueClient(Boutique *boutique)
+{
+    int idClient;
+    int indice;
+
+    if (lireEntier("Identifiant du client : ", &idClient) != 1)
+        return;
+    indice = trouverClient(boutique, idClient);
+    if (indice < 0 || !boutique->clients[indice].actif) {
+        puts("Client introuvable.");
+        return;
+    }
+    afficherHistoriqueCommandes(&boutique->clients[indice]);
+}
+
+static void afficherChiffreAffaires(const Boutique *boutique)
+{
+    float total = 0.0f;
+    int i;
+
+    for (i = 0; i < boutique->nbClients; i++)
+        if (boutique->clients[i].actif)
+            total += chiffreAffairesClient(&boutique->clients[i]);
+    printf("Chiffre d'affaires global : %.2f EUR HT\n", total);
+}
+
+static void afficherAlertesStock(const Boutique *boutique)
+{
+    int i;
+    int nombre = 0;
+
+    puts("\n--- Alertes de stock ---");
+    for (i = 0; i < boutique->nbProduits; i++) {
+        const Produit *produit = &boutique->produits[i];
+        if (produit->actif && produit->quantiteStock <= produit->seuilAlerte) {
+            printf("%s - %s : stock %d (seuil %d)\n", produit->reference,
+                   produit->designation, produit->quantiteStock,
+                   produit->seuilAlerte);
+            nombre++;
+        }
+    }
+    if (nombre == 0)
+        puts("Aucune alerte de stock.");
+}
+
+static void afficherMenu(void)
+{
+    puts("\n========================================");
+    puts("           SHOPFLOW - MENU");
+    puts("========================================");
+    puts("\n--- Catalogue produits ---");
+    puts("  1. Ajouter un produit");
+    puts("  2. Mettre a jour un produit (non disponible)");
+    puts("  3. Supprimer un produit (non disponible)");
+    puts("  4. Afficher le catalogue");
+    puts("  5. Rechercher un produit");
+    puts("\n--- Clients ---");
+    puts("  6. Ajouter un client");
+    puts("  7. Mettre a jour un client");
+    puts("  8. Supprimer un client");
+    puts("  9. Afficher la liste des clients");
+    puts(" 10. Afficher la fiche d'un client");
+    puts("\n--- Commandes ---");
+    puts(" 11. Creer une commande");
+    puts(" 12. Ajouter / supprimer une ligne (non disponible)");
+    puts(" 13. Changer le statut d'une commande (non disponible)");
+    puts(" 14. Annuler une commande (non disponible)");
+    puts(" 15. Afficher l'historique d'un client");
+    puts("\n--- Statistiques ---");
+    puts(" 16. Chiffre d'affaires global");
+    puts(" 17. Palmares produits (non disponible)");
+    puts(" 18. Palmares clients (non disponible)");
+    puts(" 19. Alertes de stock");
+    puts("\n  0. Quitter");
 }
 
 int main(void)
 {
-    int choix;
     Boutique boutique = {0};
+    int choix;
 
     if (initialiserDonneesTest(&boutique) != OK) {
-        fprintf(stderr, "Impossible de charger les donnees de demonstration.\n");
+        fputs("Impossible de charger les donnees de demonstration.\n", stderr);
         return EXIT_FAILURE;
     }
 
     do {
-        choix = afficherMenu();
-
+        afficherMenu();
+        choix = lireChoix();
         switch (choix) {
-            /* Catalogue produits -> produit.c */
-            case 1:  printf("[A faire] Ajouter un produit\n"); break;
-            case 2:  printf("[A faire] Mettre a jour un produit\n"); break;
-            case 3:  printf("[A faire] Supprimer un produit\n"); break;
-            case 4:  afficherCatalogue(&boutique); attendreEntree(); break;
-            case 5:  printf("[A faire] Rechercher un produit\n"); break;
-
-            /* Clients -> logique metier, saisie et affichage dedies. */
-            case 6:
-                menuAjouterClient(&boutique);
-                attendreEntree();
+            case 1: ajouterProduitInteractif(&boutique); break;
+            case 2: case 3:
+                puts("Cette fonctionnalite n'est pas encore implementee.");
                 break;
-            case 7:
-                menuModifierClient(&boutique);
-                attendreEntree();
+            case 4: afficherCatalogue(&boutique); attendreEntree(); break;
+            case 5: rechercherProduit(&boutique); break;
+            case 6: menuAjouterClient(&boutique); break;
+            case 7: menuModifierClient(&boutique); break;
+            case 8: menuSupprimerClient(&boutique); break;
+            case 9: afficherListeClients(&boutique); attendreEntree(); break;
+            case 10: afficherFicheClient(&boutique); break;
+            case 11: creerCommandeInteractive(&boutique); break;
+            case 12: case 13: case 14:
+                puts("Cette fonctionnalite n'est pas encore implementee.");
                 break;
-            case 8:
-                menuSupprimerClient(&boutique);
-                attendreEntree();
+            case 15: afficherHistoriqueClient(&boutique); break;
+            case 16: afficherChiffreAffaires(&boutique); break;
+            case 17: case 18:
+                puts("Cette fonctionnalite n'est pas encore implementee.");
                 break;
-            case 9:
-                afficherListeClients(&boutique);
-                attendreEntree();
-                break;
-            case 10:
-                afficherFicheClient(&boutique);
-                attendreEntree();
-                break;
-
-            /* Commandes -> commande.c */
-            case 11: printf("[A faire] Creer une commande\n"); break;
-            case 12: printf("[A faire] Ajouter / supprimer une ligne\n"); break;
-            case 13: printf("[A faire] Changer le statut d'une commande\n"); break;
-            case 14: printf("[A faire] Annuler une commande\n"); break;
-            case 15: printf("[A faire] Afficher une commande\n"); break;
-
-            /* Statistiques -> statistique.c */
-            case 16: printf("[A faire] Chiffre d'affaires\n"); break;
-            case 17: printf("[A faire] Palmares produits\n"); break;
-            case 18: printf("[A faire] Palmares clients\n"); break;
-            case 19: printf("[A faire] Alertes de stock\n"); break;
-
-            case 0:  printf("Au revoir !\n"); break;
-            default: printf("Choix invalide, recommencez.\n"); break;
+            case 19: afficherAlertesStock(&boutique); break;
+            case 0: puts("Au revoir !"); break;
+            default: puts("Choix invalide, recommencez."); break;
         }
     } while (choix != 0);
 
     detruireBoutique(&boutique);
-    return 0;
+    return EXIT_SUCCESS;
 }

@@ -38,7 +38,6 @@ jobs:
             -I . -I Catalogue-produit -I Clients -I Commandes \
             -I Statistiques -I Saisie-validation -I Initialisation \
             main.c Catalogue-produit/produit.c Clients/client.c \
-            Clients/client_affichage.c Clients/client_saisie.c \
             Commandes/commande.c Statistiques/statistique.c \
             Saisie-validation/utils.c Initialisation/initialisation.c \
             -o build/shopflow
@@ -87,7 +86,6 @@ jobs:
             -I . -I Catalogue-produit -I Clients -I Commandes \
             -I Statistiques -I Saisie-validation -I Initialisation \
             main.c Catalogue-produit/produit.c Clients/client.c \
-            Clients/client_affichage.c Clients/client_saisie.c \
             Commandes/commande.c Statistiques/statistique.c \
             Saisie-validation/utils.c Initialisation/initialisation.c \
             -o build/shopflow
@@ -154,7 +152,7 @@ jobs:
           gcc -std=c11 -g -O0 \
             -Wall -Wextra -Wpedantic -Werror \
             -I . -I Catalogue-produit -I Clients -I Commandes \
-            Catalogue-produit/produit.c Clients/client.c Clients/client_affichage.c Commandes/commande.c \
+            Catalogue-produit/produit.c Clients/client.c Commandes/commande.c \
             Initialisation/initialisation.c \
             tests/test_client_creation.c \
             -o build/test_client_creation
