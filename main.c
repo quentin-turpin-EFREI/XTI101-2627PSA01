@@ -124,25 +124,56 @@ static void ajouterProduitInteractif(Boutique *boutique)
     }
 }
 
-static void rechercherProduit(Boutique *boutique)
+static void modifierProduitInteractif(Boutique *boutique)
 {
     char reference[TAILLE_REFERENCE];
+    float prix;
+    int stock, seuil;
     int indice;
+    CodeRetour resultat;
 
     if (lireTexte("Reference du produit : ", reference, sizeof reference) != 1)
         return;
     indice = trouverProduit(boutique, reference);
-    if (indice < 0 || !boutique->produits[indice].actif) {
+    if (indice == -1 || boutique->produits[indice].actif == 0) {
         puts("Produit introuvable.");
         return;
     }
-    printf("%s - %s (%s)\nPrix HT : %.2f EUR | Stock : %d | Seuil : %d\n",
-           boutique->produits[indice].reference,
-           boutique->produits[indice].designation,
-           boutique->produits[indice].categorie,
-           boutique->produits[indice].prixUnitaireHT,
-           boutique->produits[indice].quantiteStock,
-           boutique->produits[indice].seuilAlerte);
+    if (lireReel("Nouveau prix HT : ", &prix) != 1
+        || lireEntier("Nouveau stock : ", &stock) != 1
+        || lireEntier("Nouveau seuil d'alerte : ", &seuil) != 1)
+        return;
+    resultat = modifierProduit(boutique, reference, prix, stock, seuil);
+    if (resultat == OK)
+        puts("Produit mis a jour.");
+    else
+        puts("Valeurs invalides; produit non modifie.");
+}
+
+static void supprimerProduitInteractif(Boutique *boutique)
+{
+    char reference[TAILLE_REFERENCE];
+    CodeRetour resultat;
+
+    if (lireTexte("Reference du produit : ", reference, sizeof reference) != 1)
+        return;
+    resultat = supprimerProduit(boutique, reference);
+    if (resultat == OK)
+        puts("Produit supprime (suppression logique).");
+    else if (resultat == ERR_INTERDIT)
+        puts("Suppression refusee : une commande non annulee utilise ce produit.");
+    else
+        puts("Produit introuvable.");
+}
+
+static void rechercherProduit(Boutique *boutique)
+{
+    char recherche[TAILLE_DESIGNATION];
+
+    if (lireTexte("Reference exacte ou mot dans la designation (respecter la casse) : ",
+                  recherche, sizeof recherche) != 1)
+        return;
+    rechercherProduits(boutique, recherche);
 }
 
 static void creerCommandeInteractive(Boutique *boutique)
@@ -214,8 +245,8 @@ static void afficherMenu(void)
     puts("========================================");
     puts("\n--- Catalogue produits ---");
     puts("  1. Ajouter un produit");
-    puts("  2. Mettre a jour un produit (non disponible)");
-    puts("  3. Supprimer un produit (non disponible)");
+    puts("  2. Mettre a jour un produit");
+    puts("  3. Supprimer un produit");
     puts("  4. Afficher le catalogue");
     puts("  5. Rechercher un produit");
     puts("\n--- Clients ---");
@@ -253,9 +284,8 @@ int main(void)
         choix = lireChoix();
         switch (choix) {
             case 1: ajouterProduitInteractif(&boutique); break;
-            case 2: case 3:
-                puts("Cette fonctionnalite n'est pas encore implementee.");
-                break;
+            case 2: modifierProduitInteractif(&boutique); break;
+            case 3: supprimerProduitInteractif(&boutique); break;
             case 4: afficherCatalogue(&boutique); attendreEntree(); break;
             case 5: rechercherProduit(&boutique); break;
             case 6: menuAjouterClient(&boutique); break;

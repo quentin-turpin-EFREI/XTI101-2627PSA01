@@ -9,7 +9,11 @@
  * OK signifie reussite ; ERR_... indique une erreur. */
 int trouverProduit(Boutique *boutique, const char *reference);
 CodeRetour ajouterProduit(Boutique *boutique, const Produit *produit);
+CodeRetour modifierProduit(Boutique *boutique, const char *reference,
+                          float prix, int stock, int seuil);
+CodeRetour supprimerProduit(Boutique *boutique, const char *reference);
 void afficherCatalogue(Boutique *boutique);
+void rechercherProduits(Boutique *boutique, const char *recherche);
 
-/* A faire : saisie au clavier, modification, suppression et gestion du stock. */
+/* A faire : gestion du stock liee aux commandes et alertes. */
 #endif /* PRODUIT_H */
