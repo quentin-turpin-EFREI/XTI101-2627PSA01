@@ -22,7 +22,7 @@ CodeRetour ajouterProduit(Boutique *boutique, const Produit *produit)
 {
     Produit *nouveauTableau;
     int capacite;
-    if (strlen(produit->reference) == 0 || strlen(produit->designation) == 0 || strlen(produit->categorie) == 0 || !(produit->prixUnitaireHT > 0.0f) || !isfinite(produit->prixUnitaireHT) || produit->quantiteStock < 0 || produit->seuilAlerte < 0)
+    if (strlen(produit->reference) == 0 || strlen(produit->designation) == 0 || strlen(produit->categorie) == 0 || produit->prixUnitaireHT <= 0 || !isfinite(produit->prixUnitaireHT) || produit->quantiteStock < 0 || produit->seuilAlerte < 0)
     {
         return ERR_INVALIDE;
     }
@@ -57,20 +57,83 @@ CodeRetour ajouterProduit(Boutique *boutique, const Produit *produit)
     return OK;
 }
 
+CodeRetour modifierProduit(Boutique *boutique, const char *reference,
+                          float prix, int stock, int seuil)
+{
+    int indice;
+    indice = trouverProduit(boutique, reference);
+    if (indice == -1 || boutique->produits[indice].actif == 0)
+    {
+        return ERR_INTROUVABLE;
+    }
+    if (prix <= 0 || !isfinite(prix) || stock < 0 || seuil < 0)
+    {
+        return ERR_INVALIDE;
+    }
+    boutique->produits[indice].prixUnitaireHT = prix;
+    boutique->produits[indice].quantiteStock = stock;
+    boutique->produits[indice].seuilAlerte = seuil;
+    return OK;
+}
+
+CodeRetour supprimerProduit(Boutique *boutique, const char *reference)
+{
+    int indice;
+    int i, j, k;
+    Client *client;
+    Commande *commande;
+
+    indice = trouverProduit(boutique, reference);
+    if (indice == -1 || boutique->produits[indice].actif == 0)
+    {
+        return ERR_INTROUVABLE;
+    }
+    /* Verifie les lignes de toutes les commandes non annulees. */
+    for (i = 0; i < boutique->nbClients; i++)
+    {
+        client = &boutique->clients[i];
+        for (j = 0; j < client->nbCommandes; j++)
+        {
+            commande = &client->commandes[j];
+            if (commande->statut != ANNULEE)
+            {
+                for (k = 0; k < commande->nbLignes; k++)
+                {
+                    if (strcmp(commande->lignes[k].refProduit, reference) == 0)
+                    {
+                        return ERR_INTERDIT;
+                    }
+                }
+            }
+        }
+    }
+    /* Le produit reste dans le tableau pour conserver son historique. */
+    boutique->produits[indice].actif = 0;
+    return OK;
+}
+
+/* Affichage commun au catalogue et a la recherche. */
+static void afficherProduit(Produit *produit)
+{
+    printf("%s - %s (%s)\n", produit->reference, produit->designation, produit->categorie);
+    printf("Prix HT : %.2f EUR | Stock : %d | Seuil : %d\n",
+           produit->prixUnitaireHT, produit->quantiteStock, produit->seuilAlerte);
+}
+
 void afficherCatalogue(Boutique *boutique)
 {
-    int i, nombre = 0;
-    float valeurStock = 0;
+    int i;
+    int nombre;
+    float valeurStock;
+
+    nombre = 0;
+    valeurStock = 0;
     printf("\n--- Catalogue produits ---\n");
     for (i = 0; i < boutique->nbProduits; i++)
     {
         if (boutique->produits[i].actif == 1)
         {
-            printf("%s - %s (%s)\n", boutique->produits[i].reference,
-                   boutique->produits[i].designation, boutique->produits[i].categorie);
-            printf("Prix HT : %.2f EUR | Stock : %d | Seuil : %d\n",
-                   boutique->produits[i].prixUnitaireHT,
-                   boutique->produits[i].quantiteStock, boutique->produits[i].seuilAlerte);
+            afficherProduit(&boutique->produits[i]);
             valeurStock += boutique->produits[i].prixUnitaireHT * boutique->produits[i].quantiteStock;
             nombre++;
         }
@@ -80,4 +143,33 @@ void afficherCatalogue(Boutique *boutique)
         printf("Aucun produit actif.\n");
     }
     printf("Valeur du stock : %.2f EUR HT\n", valeurStock);
+}
+
+void rechercherProduits(Boutique *boutique, const char *recherche)
+{
+    int i;
+    int nombre;
+    Produit *produit;
+
+    nombre = 0;
+    if (strlen(recherche) == 0)
+    {
+        printf("La recherche ne doit pas etre vide.\n");
+        return;
+    }
+    for (i = 0; i < boutique->nbProduits; i++)
+    {
+        produit = &boutique->produits[i];
+        /* strcmp compare la reference ; strstr cherche un mot dans le texte. */
+        if (produit->actif == 1 && (strcmp(produit->reference, recherche) == 0
+            || strstr(produit->designation, recherche) != NULL))
+        {
+            afficherProduit(produit);
+            nombre++;
+        }
+    }
+    if (nombre == 0)
+    {
+        printf("Aucun produit correspondant.\n");
+    }
 }

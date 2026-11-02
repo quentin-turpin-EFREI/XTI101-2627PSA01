@@ -5,6 +5,60 @@
 #include <string.h>
 #include "Catalogue-produit/produit.h"
 
+static void testModificationEtSuppression(void)
+{
+    Boutique boutique = {0};
+    Produit produit = {"TEST-01", "Souris", "Informatique", 20, 3, 1, 1};
+    LigneCommande ligne = {"TEST-01", 20, 1};
+    Commande commande = {0};
+    Client client = {0};
+
+    assert(ajouterProduit(&boutique, &produit) == OK);
+    assert(modifierProduit(&boutique, "TEST-01", 15, 0, 0) == OK);
+    assert(boutique.produits[0].prixUnitaireHT == 15);
+    assert(boutique.produits[0].quantiteStock == 0);
+    assert(boutique.produits[0].seuilAlerte == 0);
+    assert(strcmp(boutique.produits[0].designation, "Souris") == 0);
+    assert(modifierProduit(&boutique, "TEST-01", 0, 4, 2) == ERR_INVALIDE);
+    assert(modifierProduit(&boutique, "TEST-01", NAN, 4, 2) == ERR_INVALIDE);
+    assert(modifierProduit(&boutique, "TEST-01", INFINITY, 4, 2) == ERR_INVALIDE);
+    assert(modifierProduit(&boutique, "TEST-01", 10, -1, 2) == ERR_INVALIDE);
+    assert(modifierProduit(&boutique, "TEST-01", 10, 4, -1) == ERR_INVALIDE);
+    assert(boutique.produits[0].prixUnitaireHT == 15);
+    assert(boutique.produits[0].quantiteStock == 0);
+    assert(modifierProduit(&boutique, "ABSENT", 15, 3, 1) == ERR_INTROUVABLE);
+
+    /* Une commande conserve le prix de la vente apres modification du catalogue. */
+    assert(ligne.prixUnitaireHT == 20);
+    commande.lignes = &ligne;
+    commande.nbLignes = 1;
+    client.commandes = &commande;
+    client.nbCommandes = 1;
+    boutique.clients = &client;
+    boutique.nbClients = 1;
+    commande.statut = EN_COURS;
+    assert(supprimerProduit(&boutique, "TEST-01") == ERR_INTERDIT);
+    commande.statut = LIVREE;
+    assert(supprimerProduit(&boutique, "TEST-01") == ERR_INTERDIT);
+    commande.statut = EN_ATTENTE;
+    assert(supprimerProduit(&boutique, "TEST-01") == ERR_INTERDIT);
+
+    commande.statut = ANNULEE;
+    assert(supprimerProduit(&boutique, "TEST-01") == OK);
+    assert(boutique.nbProduits == 1 && boutique.produits[0].actif == 0);
+    assert(trouverProduit(&boutique, "TEST-01") == 0);
+    assert(ajouterProduit(&boutique, &produit) == ERR_DOUBLON);
+    assert(modifierProduit(&boutique, "TEST-01", 10, 4, 2) == ERR_INTROUVABLE);
+    assert(supprimerProduit(&boutique, "TEST-01") == ERR_INTROUVABLE);
+    assert(supprimerProduit(&boutique, "ABSENT") == ERR_INTROUVABLE);
+
+    strcpy(produit.reference, "TEST-02");
+    assert(ajouterProduit(&boutique, &produit) == OK);
+    assert(supprimerProduit(&boutique, "TEST-02") == OK);
+    free(boutique.produits);
+    puts("Modification et suppression : OK");
+}
+
 int main(void)
 {
     Boutique boutique = {0};
@@ -57,6 +111,7 @@ int main(void)
     assert(trouverProduit(&boutique, "ABSENT") == -1);
     afficherCatalogue(&boutique);
     free(boutique.produits);
-    puts("Tous les tests produits V1 sont passes.");
+    testModificationEtSuppression();
+    puts("Tous les tests produits sont passes.");
     return 0;
 }
