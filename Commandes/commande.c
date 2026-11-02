@@ -86,7 +86,8 @@ void recalculerMontantsCommande(Commande *c)
     c->montantRemise = brut * c->tauxRemise / 100.0f;
     c->montantHT = brut - c->montantRemise;
     c->montantTVA = c->montantHT * 0.20f;
-    c->fraisPort = brut >= 60.0f ? 0.0f : 5.90f;
+    /* Une commande vide ne genere pas de frais de port. */
+    c->fraisPort = brut <= 0.0f || brut >= 60.0f ? 0.0f : 5.90f;
     c->montantTTC = c->montantHT + c->montantTVA + c->fraisPort;
 }
 
