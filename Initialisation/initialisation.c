@@ -114,29 +114,29 @@ CodeRetour initialiserDonneesTest(Boutique *boutique)
          "17 boulevard Victor", "Lille", "59000", "France"}
     };
     static const LigneCommande lignesAline[] = {
-        {"PRD-0001", 79.90f, 1},
-        {"PRD-0005", 59.90f, 1},
-        {"PRD-0006", 10.10f, 1}
+        {.refProduit = "PRD-0001", .designation = "Clavier mecanique", .prixUnitaireHT = 79.90f, .quantite = 1},
+        {.refProduit = "PRD-0005", .designation = "Enceinte Bluetooth", .prixUnitaireHT = 59.90f, .quantite = 1},
+        {.refProduit = "PRD-0006", .designation = "Cable HDMI 2 m", .prixUnitaireHT = 10.10f, .quantite = 1}
     };
     static const LigneCommande lignesAnnulee[] = {
-        {"PRD-0006", 10.10f, 4}
+        {.refProduit = "PRD-0006", .designation = "Cable HDMI 2 m", .prixUnitaireHT = 10.10f, .quantite = 4}
     };
     static const LigneCommande lignesKarim[] = {
-        {"PRD-0004", 89.50f, 1}
+        {.refProduit = "PRD-0004", .designation = "Casque audio", .prixUnitaireHT = 89.50f, .quantite = 1}
     };
     static const LigneCommande lignesSophie[] = {
-        {"PRD-0002", 24.50f, 1},
-        {"PRD-0006", 10.10f, 1}
+        {.refProduit = "PRD-0002", .designation = "Souris sans fil", .prixUnitaireHT = 24.50f, .quantite = 1},
+        {.refProduit = "PRD-0006", .designation = "Cable HDMI 2 m", .prixUnitaireHT = 10.10f, .quantite = 1}
     };
     static const LigneCommande lignesJulie[] = {
-        {"PRD-0002", 24.50f, 1},
-        {"PRD-0005", 59.90f, 2},
-        {"PRD-0007", 49.90f, 1}
+        {.refProduit = "PRD-0002", .designation = "Souris sans fil", .prixUnitaireHT = 24.50f, .quantite = 1},
+        {.refProduit = "PRD-0005", .designation = "Enceinte Bluetooth", .prixUnitaireHT = 59.90f, .quantite = 2},
+        {.refProduit = "PRD-0007", .designation = "Hub USB-C 7 ports", .prixUnitaireHT = 49.90f, .quantite = 1}
     };
     static const LigneCommande lignesHugo[] = {
-        {"PRD-0003", 199.00f, 2},
-        {"PRD-0008", 109.00f, 2},
-        {"PRD-0001", 79.90f, 2}
+        {.refProduit = "PRD-0003", .designation = "Ecran 27 pouces", .prixUnitaireHT = 199.00f, .quantite = 2},
+        {.refProduit = "PRD-0008", .designation = "Disque SSD 1 To", .prixUnitaireHT = 109.00f, .quantite = 2},
+        {.refProduit = "PRD-0001", .designation = "Clavier mecanique", .prixUnitaireHT = 79.90f, .quantite = 2}
     };
     static const CommandeDemo commandesDemo[NB_COMMANDES_DEMO] = {
         {1, EN_COURS, lignesAline, 3},
