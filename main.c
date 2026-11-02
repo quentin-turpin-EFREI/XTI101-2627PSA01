@@ -177,16 +177,10 @@ int main(void)
     int choix;
     Boutique boutique = {0};
 
-<<<<<<< HEAD
     if (initialiserDonneesTest(&boutique) != OK) {
         fprintf(stderr, "Impossible de charger les donnees de demonstration.\n");
         return EXIT_FAILURE;
     }
-=======
-    boutique.idClientSuivant = 1;
-        boutique.numeroSuivant = 1;
-
->>>>>>> aa07be1 (Terminer le module commandes)
 
     do {
         choix = afficherMenu();

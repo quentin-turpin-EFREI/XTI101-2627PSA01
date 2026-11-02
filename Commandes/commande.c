@@ -10,53 +10,6 @@ static Commande *chercherCommande(Boutique *b, int idClient, int numero)
 {
     int ic, i;
     Client *client;
-<<<<<<< HEAD
-    Commande *commandesAgrandi;
-    Commande nouvelleCommande;
-
-    if (boutique == NULL || numeroCommande == NULL) {
-        return ERR_INVALIDE;
-    }
-
-    indiceClient = trouverClient(boutique, idClient);
-    if (indiceClient == 0) {
-        return ERR_INTROUVABLE;
-    }
-
-    client = &boutique->clients[indiceClient - 1];
-
-    if (client->nbCommandes >= client->capaciteCommandes) {
-        nouvelleCapacite = (client->capaciteCommandes == 0)
-            ? CAPACITE_INITIALE
-            : client->capaciteCommandes * 2;
-
-        commandesAgrandi = realloc(
-            client->commandes,
-            nouvelleCapacite * sizeof(*commandesAgrandi)
-        );
-
-        if (commandesAgrandi == NULL) {
-            return ERR_MEMOIRE;
-        }
-
-        client->commandes = commandesAgrandi;
-        client->capaciteCommandes = nouvelleCapacite;
-    }
-
-    nouvelleCommande.numero = boutique->numeroSuivant;
-    boutique->numeroSuivant++;
-    nouvelleCommande.statut = EN_COURS;
-    nouvelleCommande.montantHT = 0.0f;
-    nouvelleCommande.lignes = NULL;
-    nouvelleCommande.nbLignes = 0;
-    nouvelleCommande.capaciteLignes = 0;
-
-    client->commandes[client->nbCommandes] = nouvelleCommande;
-    client->nbCommandes++;
-
-    *numeroCommande = nouvelleCommande.numero;
-    return OK;
-=======
     if (b == NULL) return NULL;
     ic = trouverClient(b, idClient);
     if (ic < 0) return NULL;
@@ -65,7 +18,6 @@ static Commande *chercherCommande(Boutique *b, int idClient, int numero)
         if (client->commandes[i].numero == numero)
             return &client->commandes[i];
     return NULL;
->>>>>>> aa07be1 (Terminer le module commandes)
 }
 
 static Produit *chercherProduit(Boutique *b, const char *ref, int actifSeulement)
@@ -188,9 +140,6 @@ int ajouterLigneCommande(Boutique *b, int idClient, int numeroCommande,
     return OK;
 }
 
-<<<<<<< HEAD
-    commande->montantHT = total;
-=======
 int supprimerLigneCommande(Boutique *b, int idClient, int numeroCommande,
                            const char *refProduit)
 {
@@ -283,5 +232,4 @@ void afficherFacture(const Commande *c)
            "Frais de port   : %.2f EUR\nTotal TTC       : %.2f EUR\n",
            c->montantBrutHT, c->montantRemise, c->montantHT,
            c->montantTVA, c->fraisPort, c->montantTTC);
->>>>>>> aa07be1 (Terminer le module commandes)
 }

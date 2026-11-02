@@ -59,14 +59,14 @@ CodeRetour initialiserDonneesTest(Boutique *boutique)
     Boutique donnees = {0};
     Client client = {0};
     Commande commandesAline[] = {
-        {1001, EN_COURS, 149.90f, NULL, 0, 0},
-        {1002, ANNULEE, 39.90f, NULL, 0, 0}
+        {.numero = 1001, .statut = EN_COURS, .montantHT = 149.90f},
+        {.numero = 1002, .statut = ANNULEE, .montantHT = 39.90f}
     };
     Commande commandeKarim[] = {
-        {1003, LIVREE, 89.50f, NULL, 0, 0}
+        {.numero = 1003, .statut = LIVREE, .montantHT = 89.50f}
     };
     Commande commandeSophie[] = {
-        {1004, ANNULEE, 30.00f, NULL, 0, 0}
+        {.numero = 1004, .statut = ANNULEE, .montantHT = 30.00f}
     };
     CodeRetour resultat;
 
