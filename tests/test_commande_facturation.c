@@ -1,5 +1,7 @@
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "types.h"
 #include "Commandes/commande.h"
@@ -72,11 +74,129 @@ static void testRemisesProgressivesEtTVA(void)
     puts("OK remises progressives et TVA a 20 % apres remise");
 }
 
+static void preparerBoutique(Boutique *boutique)
+{
+    memset(boutique, 0, sizeof *boutique);
+    boutique->clients = calloc(1, sizeof *boutique->clients);
+    boutique->produits = calloc(1, sizeof *boutique->produits);
+    assert(boutique->clients != NULL);
+    assert(boutique->produits != NULL);
+
+    boutique->nbClients = 1;
+    boutique->idClientSuivant = 2;
+    boutique->numeroSuivant = 100;
+    boutique->clients[0].idClient = 1;
+    boutique->clients[0].actif = 1;
+
+    boutique->nbProduits = 1;
+    strcpy(boutique->produits[0].reference, "SKU1");
+    strcpy(boutique->produits[0].designation, "Article test");
+    boutique->produits[0].prixUnitaireHT = 50.0f;
+    boutique->produits[0].quantiteStock = 5;
+    boutique->produits[0].actif = 1;
+}
+
+static void libererBoutiqueTest(Boutique *boutique)
+{
+    int i, j;
+
+    for (i = 0; i < boutique->nbClients; i++) {
+        for (j = 0; j < boutique->clients[i].nbCommandes; j++)
+            free(boutique->clients[i].commandes[j].lignes);
+        free(boutique->clients[i].commandes);
+    }
+    free(boutique->clients);
+    free(boutique->produits);
+}
+
+static void testAjoutSuppressionStockEtPoints(void)
+{
+    Boutique boutique;
+    Client *client;
+    Commande *commande;
+    int numero;
+
+    preparerBoutique(&boutique);
+    client = &boutique.clients[0];
+    assert(creerCommande(&boutique, 1, &numero) == OK);
+    assert(numero == 100);
+
+    assert(ajouterLigneCommande(&boutique, 1, numero, "SKU1", 1) == OK);
+    commande = &client->commandes[0];
+    assert(boutique.produits[0].quantiteStock == 4);
+    assert(commande->nbLignes == 1);
+    assert(commande->lignes[0].quantite == 1);
+    assert(client->pointsFidelite == 6);
+
+    /* Le deuxieme ajout augmente la ligne existante et recalcule les points. */
+    assert(ajouterLigneCommande(&boutique, 1, numero, "SKU1", 1) == OK);
+    assert(boutique.produits[0].quantiteStock == 3);
+    assert(commande->nbLignes == 1);
+    assert(commande->lignes[0].quantite == 2);
+    assert(client->pointsFidelite == 11);
+
+    assert(supprimerLigneCommande(&boutique, 1, numero, "SKU1") == OK);
+    assert(boutique.produits[0].quantiteStock == 5);
+    assert(commande->nbLignes == 0);
+    assert(client->pointsFidelite == 0);
+
+    libererBoutiqueTest(&boutique);
+    puts("OK ajout/suppression : stock et points de fidelite ajustes");
+}
+
+static void testStockInsuffisantEtAnnulation(void)
+{
+    Boutique boutique;
+    Client *client;
+    Commande *commande;
+    int numero;
+
+    preparerBoutique(&boutique);
+    client = &boutique.clients[0];
+    assert(creerCommande(&boutique, 1, &numero) == OK);
+    assert(ajouterLigneCommande(&boutique, 1, numero, "SKU1", 6)
+           == ERR_INTERDIT);
+    assert(boutique.produits[0].quantiteStock == 5);
+    assert(client->commandes[0].nbLignes == 0);
+
+    assert(ajouterLigneCommande(&boutique, 1, numero, "SKU1", 2) == OK);
+    assert(client->pointsFidelite == 11);
+    assert(annulerCommande(&boutique, 1, numero) == OK);
+
+    commande = &client->commandes[0];
+    assert(commande->statut == ANNULEE);
+    assert(boutique.produits[0].quantiteStock == 5);
+    assert(client->pointsFidelite == 0);
+    assert(annulerCommande(&boutique, 1, numero) == ERR_INTERDIT);
+
+    libererBoutiqueTest(&boutique);
+    puts("OK annulation : stock restitue et points retires");
+}
+
+static void testTransitionsDeStatut(void)
+{
+    Boutique boutique;
+    int numero;
+
+    preparerBoutique(&boutique);
+    assert(creerCommande(&boutique, 1, &numero) == OK);
+    assert(changerStatutCommande(&boutique, 1, numero, EXPEDIEE) == OK);
+    assert(changerStatutCommande(&boutique, 1, numero, LIVREE) == OK);
+    assert(changerStatutCommande(&boutique, 1, numero, EN_COURS)
+           == ERR_INTERDIT);
+
+    libererBoutiqueTest(&boutique);
+    puts("OK statuts : expedition puis livraison, retour refuse");
+}
+
 int main(void)
 {
     testCommandeVideSansFraisDePort();
     testFraisDePortEtSeuilGratuit();
     testRemisesProgressivesEtTVA();
-    puts("Tous les tests de facturation sont passes.");
+    testAjoutSuppressionStockEtPoints();
+    testStockInsuffisantEtAnnulation();
+    testTransitionsDeStatut();
+    puts("Tous les tests de commandes et facturation sont passes.");
     return 0;
 }
