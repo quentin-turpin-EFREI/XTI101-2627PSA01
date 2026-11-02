@@ -234,3 +234,40 @@ void afficherFacture(const Commande *c)
            c->montantBrutHT, c->montantRemise, c->montantHT,
            c->montantTVA, c->fraisPort, c->montantTTC);
 }
+
+static const char *nomStatutCommande(StatutCommande statut)
+{
+    switch (statut) {
+        case EN_COURS: return "En cours";
+        case EXPEDIEE: return "Expediee";
+        case LIVREE: return "Livree";
+        case ANNULEE: return "Annulee";
+        case EN_ATTENTE: return "En attente";
+        default: return "Inconnu";
+    }
+}
+
+void afficherHistoriqueCommandes(const Client *client)
+{
+    int i;
+
+    puts("\n--- Historique des commandes ---");
+    if (client == NULL || client->nbCommandes < 0
+        || client->nbCommandes > client->capaciteCommandes
+        || (client->nbCommandes > 0 && client->commandes == NULL)) {
+        puts("Erreur : historique des commandes incoherent.");
+        return;
+    }
+
+    if (client->nbCommandes == 0) {
+        puts("Aucune commande.");
+        return;
+    }
+
+    for (i = 0; i < client->nbCommandes; i++) {
+        const Commande *commande = &client->commandes[i];
+
+        printf("%d | %s | %.2f EUR TTC\n", commande->numero,
+               nomStatutCommande(commande->statut), commande->montantTTC);
+    }
+}
