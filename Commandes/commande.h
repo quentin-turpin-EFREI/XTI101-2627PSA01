@@ -20,4 +20,6 @@ int changerStatutCommande(Boutique *boutique, int idClient,
 int annulerCommande(Boutique *boutique, int idClient, int numeroCommande);
 
 void recalculerMontantsCommande(Commande *commande);
+void afficherFacture(const Commande *commande);
 #endif /* COMMANDE_H */
+

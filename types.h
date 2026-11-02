@@ -44,24 +44,41 @@ typedef struct {
 
 typedef enum {
     EN_COURS = 0,
+    EXPEDIEE,
     LIVREE,
     ANNULEE
 } StatutCommande;
 
 typedef struct {
+    int jour;
+    int mois;
+    int annee;
+} Date;
+
+typedef struct {
     char refProduit[TAILLE_REFERENCE];
+    char designation[TAILLE_DESIGNATION];
     float prixUnitaireHT;
     int quantite;
+    float sousTotalHT;
 } LigneCommande;
 
 typedef struct Commande {
     int numero;
+    int idClient;
+    Date dateCommande;
     StatutCommande statut;
-    float montantHT;
-
-    LigneCommande *lignes;
     int nbLignes;
     int capaciteLignes;
+    LigneCommande *lignes;
+    Adresse adresseLivraison;
+    float montantBrutHT;
+    float tauxRemise;
+    float montantRemise;
+    float montantHT;
+    float montantTVA;
+    float fraisPort;
+    float montantTTC;
 } Commande;
 
 typedef struct {

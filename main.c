@@ -70,15 +70,123 @@ static int afficherMenu(void)
     return choix;
 }
 
+static int lireEntierCommande(const char *invite, int *valeur)
+{
+    char saisie[64];
+    int c;
+    printf("%s", invite);
+    if (fgets(saisie, sizeof saisie, stdin) == NULL) return 0;
+    if (strchr(saisie, '\n') == NULL)
+        while ((c = getchar()) != '\n' && c != EOF) { }
+    return sscanf(saisie, "%d", valeur) == 1;
+}
+
+static int lireReferenceCommande(char *ref, size_t taille)
+{
+    size_t longueur;
+    int c;
+    printf("Reference produit : ");
+    if (fgets(ref, (int)taille, stdin) == NULL) return 0;
+    longueur = strlen(ref);
+    if (longueur > 0 && ref[longueur - 1] == '\n') {
+        ref[--longueur] = '\0';
+        if (longueur > 0 && ref[longueur - 1] == '\r') ref[--longueur] = '\0';
+    } else {
+        c = getchar();
+        if (c != '\n' && c != EOF) {
+            while ((c = getchar()) != '\n' && c != EOF) { }
+            return 0;
+        }
+    }
+    return ref[0] != '\0';
+}
+
+void menuCreerCommande(Boutique *b)
+{
+    int id, numero, resultat;
+    if (!lireEntierCommande("Identifiant client : ", &id)) { puts("Saisie invalide."); return; }
+    resultat = creerCommande(b, id, &numero);
+    if (resultat == OK) printf("Commande %d creee.\n", numero);
+    else printf("Creation impossible (code %d).\n", resultat);
+}
+
+void menuGererLigneCommande(Boutique *b)
+{
+    int id, numero, action, quantite, resultat;
+    char ref[TAILLE_REFERENCE];
+    if (!lireEntierCommande("Identifiant client : ", &id) ||
+        !lireEntierCommande("Numero de commande : ", &numero) ||
+        !lireEntierCommande("1 = ajouter, 2 = supprimer : ", &action) ||
+        (action != 1 && action != 2) || !lireReferenceCommande(ref, sizeof ref)) {
+        puts("Saisie invalide."); return;
+    }
+    if (action == 1) {
+        if (!lireEntierCommande("Quantite : ", &quantite)) { puts("Saisie invalide."); return; }
+        resultat = ajouterLigneCommande(b, id, numero, ref, quantite);
+    } else resultat = supprimerLigneCommande(b, id, numero, ref);
+    if (resultat == OK) puts("Ligne de commande mise a jour.");
+    else printf("Operation impossible (code %d).\n", resultat);
+}
+
+void menuChangerStatutCommande(Boutique *b)
+{
+    int id, numero, choix, resultat;
+    StatutCommande statut;
+    if (!lireEntierCommande("Identifiant client : ", &id) ||
+        !lireEntierCommande("Numero de commande : ", &numero) ||
+        !lireEntierCommande("1 = expedier, 2 = livrer, 3 = annuler : ", &choix)) {
+        puts("Saisie invalide."); return;
+    }
+    if (choix == 1) statut = EXPEDIEE;
+    else if (choix == 2) statut = LIVREE;
+    else if (choix == 3) statut = ANNULEE;
+    else { puts("Statut invalide."); return; }
+    resultat = changerStatutCommande(b, id, numero, statut);
+    if (resultat == OK) puts("Statut mis a jour.");
+    else printf("Changement impossible (code %d).\n", resultat);
+}
+
+void menuAnnulerCommande(Boutique *b)
+{
+    int id, numero, resultat;
+    if (!lireEntierCommande("Identifiant client : ", &id) ||
+        !lireEntierCommande("Numero de commande : ", &numero)) { puts("Saisie invalide."); return; }
+    resultat = annulerCommande(b, id, numero);
+    if (resultat == OK) puts("Commande annulee; stock et points ajustes.");
+    else printf("Annulation impossible (code %d).\n", resultat);
+}
+
+void menuAfficherFacture(Boutique *b)
+{
+    int id, numero, ic, i;
+    Client *client;
+    if (!lireEntierCommande("Identifiant client : ", &id) ||
+        !lireEntierCommande("Numero de commande : ", &numero)) { puts("Saisie invalide."); return; }
+    ic = trouverClient(b, id);
+    if (ic < 0) { puts("Client introuvable."); return; }
+    client = &b->clients[ic];
+    for (i = 0; i < client->nbCommandes; i++)
+        if (client->commandes[i].numero == numero) {
+            afficherFacture(&client->commandes[i]); return;
+        }
+    puts("Commande introuvable pour ce client.");
+}
+
 int main(void)
 {
     int choix;
     Boutique boutique = {0};
 
+<<<<<<< HEAD
     if (initialiserDonneesTest(&boutique) != OK) {
         fprintf(stderr, "Impossible de charger les donnees de demonstration.\n");
         return EXIT_FAILURE;
     }
+=======
+    boutique.idClientSuivant = 1;
+        boutique.numeroSuivant = 1;
+
+>>>>>>> aa07be1 (Terminer le module commandes)
 
     do {
         choix = afficherMenu();
@@ -99,11 +207,11 @@ int main(void)
             case 10: printf("[A faire] Afficher la fiche d'un client\n"); break;
 
             /* Commandes -> commande.c */
-            case 11: printf("[A faire] Creer une commande\n"); break;
-            case 12: printf("[A faire] Ajouter / supprimer une ligne\n"); break;
-            case 13: printf("[A faire] Changer le statut d'une commande\n"); break;
-            case 14: printf("[A faire] Annuler une commande\n"); break;
-            case 15: printf("[A faire] Afficher une commande\n"); break;
+            case 11: menuCreerCommande(&boutique); break;
+            case 12: menuGererLigneCommande(&boutique); break;
+            case 13: menuChangerStatutCommande(&boutique); break;
+            case 14: menuAnnulerCommande(&boutique); break;
+            case 15: menuAfficherFacture(&boutique); break;
 
             /* Statistiques -> statistique.c */
             case 16: printf("[A faire] Chiffre d'affaires\n"); break;
