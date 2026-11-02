@@ -45,13 +45,24 @@ typedef struct {
 typedef enum {
     EN_COURS = 0,
     LIVREE,
-    ANNULEE
+    ANNULEE,
+    EN_ATTENTE
 } StatutCommande;
 
+typedef struct {
+    char refProduit[TAILLE_REFERENCE];
+    float prixUnitaireHT;
+    int quantite;
+} LigneCommande;
+
 typedef struct Commande {
-    int            numero;
+    int numero;
     StatutCommande statut;
-    float          montantHT;
+    float montantHT;
+
+    LigneCommande *lignes;
+    int nbLignes;
+    int capaciteLignes;
 } Commande;
 
 typedef struct {

@@ -1,18 +1,19 @@
-/* produit.h - premiere partie du catalogue produits */
+/* produit.h - V1 du catalogue */
 #ifndef PRODUIT_H
 #define PRODUIT_H
 
 #include "../types.h"
 
-/* La structure Produit est deja declaree dans types.h. */
-int trouverProduit(const Boutique *boutique, const char *reference);
+/* Boutique doit etre initialisee a zero avant le premier ajout.
+ * Le tableau produits sera libere avec free dans detruireBoutique.
+ * OK signifie reussite ; ERR_... indique une erreur. */
+int trouverProduit(Boutique *boutique, const char *reference);
+CodeRetour ajouterProduit(Boutique *boutique, const Produit *produit);
+CodeRetour modifierProduit(Boutique *boutique, const char *reference,
+                          float prix, int stock, int seuil);
+CodeRetour supprimerProduit(Boutique *boutique, const char *reference);
+void afficherCatalogue(Boutique *boutique);
+void rechercherProduits(Boutique *boutique, const char *recherche);
 
-/* Renvoie 1 si l'ajout reussit, 0 sinon.
- * La boutique doit etre initialisee a zero avant le premier ajout.
- * Son tableau produits devra etre libere avec free en fin de programme. */
-int ajouterProduit(Boutique *boutique, const Produit *produit);
-void afficherCatalogue(const Boutique *boutique);
-
-/* A faire ensuite : modification, suppression, saisie et gestion du stock. */
-
+/* A faire : gestion du stock liee aux commandes et alertes. */
 #endif /* PRODUIT_H */

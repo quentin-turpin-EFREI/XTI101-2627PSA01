@@ -90,15 +90,19 @@ jobs:
             Saisie-validation/utils.c Initialisation/initialisation.c \
             -o build/shopflow
 
+      - name: Tester les saisies invalides client et menu
+        run: bash tests/test_input_validation.sh ./build/shopflow
+
       - name: Tester la creation client depuis le menu avec Valgrind
         run: |
           set -o pipefail
           printf '%s\n' \
+            '9' '' '8' '2' '' '8' '3' '' \
             '6' 'Bernard' 'Julie' 'julie@example.fr' '0612345678' \
             '12 rue de la Paix' 'Paris' '75002' 'France' '' \
-            '7' '1' 'Martin' 'Julie' 'julie.updated@example.fr' '0711223344' \
+            '7' '6' 'Martin' 'Julie' 'julie.updated@example.fr' '0711223344' \
             '5 avenue Victor Hugo' 'Lyon' '69002' 'France' '' \
-            '9' '' '8' '1' '' '9' '' '0' \
+            '9' '' '8' '6' '' '9' '' '0' \
             | timeout 30s valgrind \
             --leak-check=full \
             --show-leak-kinds=all \
@@ -106,14 +110,31 @@ jobs:
             --error-exitcode=1 \
             ./build/shopflow \
             | tee build/menu-client.log
-          grep -Fq "Client cree avec l'identifiant 1." build/menu-client.log
+          grep -Fq "Client cree avec l'identifiant 6." build/menu-client.log
           grep -Fq 'Coordonnees et adresse du client mises a jour.' build/menu-client.log
-          grep -Fq '1 | Martin Julie | julie.updated@example.fr | 0 | 0.00 EUR' build/menu-client.log
+          grep -Fq '1 | Martin Aline | aline.martin@example.fr | 2 | 149.90 EUR' build/menu-client.log
+          grep -Fq '2 | Bernard Karim | karim.bernard@example.fr | 1 | 89.50 EUR' build/menu-client.log
+          grep -Fq '6 | Martin Julie | julie.updated@example.fr | 0 | 0.00 EUR' build/menu-client.log
+          grep -Fq 'Suppression refusee : ce client a une commande non annulee.' build/menu-client.log
           grep -Fq 'Client supprime (suppression logique).' build/menu-client.log
-          grep -Fq 'Aucun client actif.' build/menu-client.log
 
-  tests-unitaires-client:
-    name: Tests unitaires - creation client
+      - name: Tester le catalogue produits depuis le menu avec Valgrind
+        run: |
+          set -o pipefail
+          printf '%s\n' \
+            '4' '' '0' \
+            | timeout 30s valgrind \
+            --leak-check=full \
+            --show-leak-kinds=all \
+            --errors-for-leak-kinds=definite,possible \
+            --error-exitcode=1 \
+            ./build/shopflow \
+            | tee build/menu-produit.log
+          grep -Fq 'Clavier mecanique' build/menu-produit.log
+          grep -Fq 'Valeur du stock : 11075.70 EUR HT' build/menu-produit.log
+
+  tests-unitaires-client-commande:
+    name: Tests unitaires - clients et commandes
     runs-on: ubuntu-latest
     needs: compilation
 
@@ -130,7 +151,10 @@ jobs:
           mkdir -p build
           gcc -std=c11 -g -O0 \
             -Wall -Wextra -Wpedantic -Werror \
-            -I . Clients/client.c tests/test_client_creation.c \
+            -I . -I Catalogue-produit -I Clients -I Commandes \
+            Catalogue-produit/produit.c Clients/client.c Commandes/commande.c \
+            Initialisation/initialisation.c \
+            tests/test_client_creation.c \
             -o build/test_client_creation
 
       - name: Executer les tests client
@@ -143,3 +167,36 @@ jobs:
             --errors-for-leak-kinds=definite,possible \
             --error-exitcode=1 \
             ./build/test_client_creation
+
+  tests-unitaires-produits:
+    name: Tests unitaires - produits
+    runs-on: ubuntu-latest
+    needs: compilation
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Installer GCC et Valgrind
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential valgrind
+
+      - name: Compiler les tests produits
+        run: |
+          mkdir -p build
+          gcc -std=c11 -g -O0 \
+            -Wall -Wextra -Wpedantic -Werror \
+            -I . -I Catalogue-produit \
+            Catalogue-produit/produit.c tests/test_produit.c \
+            -o build/test_produit
+
+      - name: Executer les tests produits
+        run: ./build/test_produit
+
+      - name: Verifier les fuites memoire des tests produits
+        run: |
+          valgrind --leak-check=full \
+            --show-leak-kinds=all \
+            --errors-for-leak-kinds=definite,possible \
+            --error-exitcode=1 \
+            ./build/test_produit

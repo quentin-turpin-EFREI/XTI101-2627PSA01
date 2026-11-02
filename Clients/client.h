@@ -7,17 +7,25 @@
 /* Ajoute un client valide et renvoie son identifiant attribue par la boutique. */
 CodeRetour ajouterClient(Boutique *b, const Client *client, int *idAttribue);
 
-/* Recherche et unicite de l'email (les clients inactifs restent consideres). */
+/* Renvoie l'indice du client (desactives compris), ou -1 s'il est absent. */
 int trouverClient(const Boutique *b, int idClient);
+/* Les emails des clients desactives restent reserves. */
 int emailExiste(const Boutique *b, const char *email, int idIgnore);
 
-/* Fonctions metier des actions client. */
+/* Regles metier et acces aux donnees (client.c). */
 CodeRetour modifierClient(Boutique *b, int idClient, const Client *infos);
 CodeRetour supprimerClient(Boutique *b, int idClient);
 float chiffreAffairesClient(const Client *client);
+void ajouterPointsFidelite(Client *client, float montantTTC);
+void retirerPointsFidelite(Client *client, float montantTTC);
+void libererClient(Client *client);
+
+/* Affichage des donnees clients (client.c). */
+void afficherClient(const Client *client);
 void afficherListeClients(const Boutique *b);
 
-/* Saisit les informations et appelle ajouterClient. */
+/* Fiche interactive et formulaires (client.c). */
+void afficherFicheClient(const Boutique *b);
 void menuAjouterClient(Boutique *b);
 void menuModifierClient(Boutique *b);
 void menuSupprimerClient(Boutique *b);
