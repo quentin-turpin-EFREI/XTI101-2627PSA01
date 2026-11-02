@@ -12,8 +12,8 @@ static Commande *chercherCommande(Boutique *b, int idClient, int numero)
     Client *client;
     if (b == NULL) return NULL;
     ic = trouverClient(b, idClient);
-    if (ic < 0) return NULL;
-    client = &b->clients[ic];
+    if (ic <= 0) return NULL;
+    client = &b->clients[ic - 1];
     for (i = 0; i < client->nbCommandes; i++)
         if (client->commandes[i].numero == numero)
             return &client->commandes[i];
@@ -46,8 +46,8 @@ int creerCommande(Boutique *b, int idClient, int *numeroCommande)
     struct tm *date;
     if (b == NULL || numeroCommande == NULL) return ERR_INVALIDE;
     ic = trouverClient(b, idClient);
-    if (ic < 0) return ERR_INTROUVABLE;
-    client = &b->clients[ic];
+    if (ic <= 0) return ERR_INTROUVABLE;
+    client = &b->clients[ic - 1];
     if (client->nbCommandes >= client->capaciteCommandes) {
         capacite = client->capaciteCommandes == 0
             ? CAPACITE_INITIALE : client->capaciteCommandes * 2;
@@ -102,8 +102,8 @@ int ajouterLigneCommande(Boutique *b, int idClient, int numeroCommande,
     if (b == NULL || refProduit == NULL || refProduit[0] == '\0' || quantite <= 0)
         return ERR_INVALIDE;
     ic = trouverClient(b, idClient);
-    if (ic < 0) return ERR_INTROUVABLE;
-    client = &b->clients[ic];
+    if (ic <= 0) return ERR_INTROUVABLE;
+    client = &b->clients[ic - 1];
     c = chercherCommande(b, idClient, numeroCommande);
     if (c == NULL) return ERR_INTROUVABLE;
     if (c->statut != EN_COURS) return ERR_INTERDIT;
@@ -150,8 +150,8 @@ int supprimerLigneCommande(Boutique *b, int idClient, int numeroCommande,
     Produit *p;
     if (b == NULL || refProduit == NULL || refProduit[0] == '\0') return ERR_INVALIDE;
     ic = trouverClient(b, idClient);
-    if (ic < 0) return ERR_INTROUVABLE;
-    client = &b->clients[ic];
+    if (ic <= 0) return ERR_INTROUVABLE;
+    client = &b->clients[ic - 1];
     c = chercherCommande(b, idClient, numeroCommande);
     if (c == NULL) return ERR_INTROUVABLE;
     if (c->statut != EN_COURS) return ERR_INTERDIT;
@@ -177,8 +177,8 @@ int annulerCommande(Boutique *b, int idClient, int numeroCommande)
     Produit *p;
     if (b == NULL) return ERR_INVALIDE;
     ic = trouverClient(b, idClient);
-    if (ic < 0) return ERR_INTROUVABLE;
-    client = &b->clients[ic];
+    if (ic <= 0) return ERR_INTROUVABLE;
+    client = &b->clients[ic - 1];
     c = chercherCommande(b, idClient, numeroCommande);
     if (c == NULL) return ERR_INTROUVABLE;
     if (c->statut != EN_COURS) return ERR_INTERDIT;
