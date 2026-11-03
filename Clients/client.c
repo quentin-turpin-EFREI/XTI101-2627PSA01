@@ -438,6 +438,29 @@ static int lireIdentifiant(int *id)
     return 1;
 }
 
+void afficherPointsFideliteClient(const Boutique *b)
+{
+    int id;
+    int position;
+    const Client *client;
+
+    if (b == NULL || !lireIdentifiant(&id)) {
+        puts("Identifiant invalide.");
+        return;
+    }
+
+    position = trouverClient(b, id);
+    if (position < 0 || !b->clients[position].actif) {
+        puts("Client introuvable.");
+        return;
+    }
+
+    client = &b->clients[position];
+    printf("Client : %s %s (identifiant %d)\n",
+           client->nom, client->prenom, client->idClient);
+    printf("Points de fidelite : %d\n", client->pointsFidelite);
+}
+
 void afficherFicheClient(const Boutique *b)
 {
     int id;

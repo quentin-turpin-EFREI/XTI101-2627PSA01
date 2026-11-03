@@ -189,8 +189,40 @@ static void testTransitionsDeStatut(void)
     puts("OK statuts : expedition puis livraison, retour refuse");
 }
 
+static void testFideliteArrondiEtCumul(void)
+{
+    Boutique boutique;
+    Client *client;
+    int premiere, seconde;
+
+    preparerBoutique(&boutique);
+    client = &boutique.clients[0];
+    /* 20,08 HT + TVA + port = 29,996 TTC, facture arrondie a 30,00. */
+    boutique.produits[0].prixUnitaireHT = 20.08f;
+    assert(creerCommande(&boutique, 1, &premiere) == OK);
+    assert(client->pointsFidelite == 0);
+    assert(ajouterLigneCommande(&boutique, 1, premiere, "SKU1", 1) == OK);
+    assert(client->pointsFidelite == 3);
+
+    boutique.produits[0].prixUnitaireHT = 20.07f;
+    assert(creerCommande(&boutique, 1, &seconde) == OK);
+    assert(ajouterLigneCommande(&boutique, 1, seconde, "SKU1", 1) == OK);
+    assert(client->pointsFidelite == 5);
+    assert(annulerCommande(&boutique, 1, premiere) == OK);
+    assert(client->pointsFidelite == 2);
+    assert(annulerCommande(&boutique, 1, premiere) == ERR_INTERDIT);
+    assert(client->pointsFidelite == 2);
+    assert(changerStatutCommande(&boutique, 1, seconde, EXPEDIEE) == OK);
+    assert(changerStatutCommande(&boutique, 1, seconde, LIVREE) == OK);
+    assert(client->pointsFidelite == 2);
+
+    libererBoutiqueTest(&boutique);
+    puts("OK fidelite : arrondi au centime, cumul et absence de double credit");
+}
+
 int main(void)
 {
+    testFideliteArrondiEtCumul();
     testCommandeVideSansFraisDePort();
     testFraisDePortEtSeuilGratuit();
     testRemisesProgressivesEtTVA();

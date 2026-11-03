@@ -238,35 +238,140 @@ static void afficherAlertesStock(const Boutique *boutique)
         puts("Aucune alerte de stock.");
 }
 
+static void afficherUneCommande(Boutique *boutique)
+{
+    int idClient;
+    int numeroCommande;
+    int indiceClient;
+    int i;
+    const Client *client;
+
+    if (lireEntier("Identifiant du client : ", &idClient) != 1
+        || lireEntier("Numero de commande : ", &numeroCommande) != 1)
+        return;
+
+    indiceClient = trouverClient(boutique, idClient);
+    if (indiceClient < 0 || !boutique->clients[indiceClient].actif) {
+        puts("Client introuvable.");
+        return;
+    }
+
+    client = &boutique->clients[indiceClient];
+    for (i = 0; i < client->nbCommandes; i++) {
+        if (client->commandes[i].numero == numeroCommande) {
+            afficherFacture(&client->commandes[i]);
+            return;
+        }
+    }
+    puts("Commande introuvable.");
+}
+
+static void menuProduits(Boutique *boutique)
+{
+    int choix;
+
+    do {
+        puts("\n===== GESTION DES PRODUITS =====");
+        puts("  1. Ajouter un produit");
+        puts("  2. Modifier un produit");
+        puts("  3. Supprimer un produit");
+        puts("  4. Afficher le catalogue");
+        puts("  5. Rechercher un produit");
+        puts("  0. Retour au menu principal");
+        choix = lireChoix();
+
+        switch (choix) {
+            case 1: ajouterProduitInteractif(boutique); break;
+            case 2: modifierProduitInteractif(boutique); break;
+            case 3: supprimerProduitInteractif(boutique); break;
+            case 4: afficherCatalogue(boutique); attendreEntree(); break;
+            case 5: rechercherProduit(boutique); break;
+            case 0: break;
+            default: puts("Choix invalide."); break;
+        }
+    } while (choix != 0);
+}
+
+static void menuClients(Boutique *boutique)
+{
+    int choix;
+
+    do {
+        puts("\n===== GESTION DES CLIENTS =====");
+        puts("  1. Ajouter un client");
+        puts("  2. Modifier un client");
+        puts("  3. Supprimer un client");
+        puts("  4. Afficher la liste des clients");
+        puts("  5. Afficher la fiche d'un client");
+        puts("  6. Afficher les points de fidelite d'un client");
+        puts("  0. Retour au menu principal");
+        choix = lireChoix();
+
+        switch (choix) {
+            case 1: menuAjouterClient(boutique); break;
+            case 2: menuModifierClient(boutique); break;
+            case 3: menuSupprimerClient(boutique); break;
+            case 4: afficherListeClients(boutique); attendreEntree(); break;
+            case 5: afficherFicheClient(boutique); break;
+            case 6: afficherPointsFideliteClient(boutique); break;
+            case 0: break;
+            default: puts("Choix invalide."); break;
+        }
+    } while (choix != 0);
+}
+
+static void menuCommandes(Boutique *boutique)
+{
+    int choix;
+
+    do {
+        puts("\n===== GESTION DES COMMANDES =====");
+        puts("  1. Creer une commande");
+        puts("  2. Afficher l'historique d'un client");
+        puts("  3. Afficher une facture");
+        puts("  0. Retour au menu principal");
+        choix = lireChoix();
+
+        switch (choix) {
+            case 1: creerCommandeInteractive(boutique); break;
+            case 2: afficherHistoriqueClient(boutique); break;
+            case 3: afficherUneCommande(boutique); break;
+            case 0: break;
+            default: puts("Choix invalide."); break;
+        }
+    } while (choix != 0);
+}
+
+static void menuStatistiques(Boutique *boutique)
+{
+    int choix;
+
+    do {
+        puts("\n===== STATISTIQUES =====");
+        puts("  1. Chiffre d'affaires global");
+        puts("  2. Alertes de stock");
+        puts("  0. Retour au menu principal");
+        choix = lireChoix();
+
+        switch (choix) {
+            case 1: afficherChiffreAffaires(boutique); break;
+            case 2: afficherAlertesStock(boutique); break;
+            case 0: break;
+            default: puts("Choix invalide."); break;
+        }
+    } while (choix != 0);
+}
+
 static void afficherMenu(void)
 {
     puts("\n========================================");
-    puts("           SHOPFLOW - MENU");
+    puts("  SHOPFLOW - Boutique en ligne");
     puts("========================================");
-    puts("\n--- Catalogue produits ---");
-    puts("  1. Ajouter un produit");
-    puts("  2. Mettre a jour un produit");
-    puts("  3. Supprimer un produit");
-    puts("  4. Afficher le catalogue");
-    puts("  5. Rechercher un produit");
-    puts("\n--- Clients ---");
-    puts("  6. Ajouter un client");
-    puts("  7. Mettre a jour un client");
-    puts("  8. Supprimer un client");
-    puts("  9. Afficher la liste des clients");
-    puts(" 10. Afficher la fiche d'un client");
-    puts("\n--- Commandes ---");
-    puts(" 11. Creer une commande");
-    puts(" 12. Ajouter / supprimer une ligne (non disponible)");
-    puts(" 13. Changer le statut d'une commande (non disponible)");
-    puts(" 14. Annuler une commande (non disponible)");
-    puts(" 15. Afficher l'historique d'un client");
-    puts("\n--- Statistiques ---");
-    puts(" 16. Chiffre d'affaires global");
-    puts(" 17. Palmares produits (non disponible)");
-    puts(" 18. Palmares clients (non disponible)");
-    puts(" 19. Alertes de stock");
-    puts("\n  0. Quitter");
+    puts("  1. Gestion des produits");
+    puts("  2. Gestion des clients");
+    puts("  3. Gestion des commandes");
+    puts("  4. Statistiques");
+    puts("  0. Quitter");
 }
 
 int main(void)
@@ -283,26 +388,10 @@ int main(void)
         afficherMenu();
         choix = lireChoix();
         switch (choix) {
-            case 1: ajouterProduitInteractif(&boutique); break;
-            case 2: modifierProduitInteractif(&boutique); break;
-            case 3: supprimerProduitInteractif(&boutique); break;
-            case 4: afficherCatalogue(&boutique); attendreEntree(); break;
-            case 5: rechercherProduit(&boutique); break;
-            case 6: menuAjouterClient(&boutique); break;
-            case 7: menuModifierClient(&boutique); break;
-            case 8: menuSupprimerClient(&boutique); break;
-            case 9: afficherListeClients(&boutique); attendreEntree(); break;
-            case 10: afficherFicheClient(&boutique); break;
-            case 11: creerCommandeInteractive(&boutique); break;
-            case 12: case 13: case 14:
-                puts("Cette fonctionnalite n'est pas encore implementee.");
-                break;
-            case 15: afficherHistoriqueClient(&boutique); break;
-            case 16: afficherChiffreAffaires(&boutique); break;
-            case 17: case 18:
-                puts("Cette fonctionnalite n'est pas encore implementee.");
-                break;
-            case 19: afficherAlertesStock(&boutique); break;
+            case 1: menuProduits(&boutique); break;
+            case 2: menuClients(&boutique); break;
+            case 3: menuCommandes(&boutique); break;
+            case 4: menuStatistiques(&boutique); break;
             case 0: puts("Au revoir !"); break;
             default: puts("Choix invalide, recommencez."); break;
         }

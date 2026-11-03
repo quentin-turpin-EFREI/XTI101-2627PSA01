@@ -29,5 +29,5 @@ void afficherFicheClient(const Boutique *b);
 void menuAjouterClient(Boutique *b);
 void menuModifierClient(Boutique *b);
 void menuSupprimerClient(Boutique *b);
-
+void afficherPointsFideliteClient(const Boutique *b);
 #endif /* CLIENT_H */

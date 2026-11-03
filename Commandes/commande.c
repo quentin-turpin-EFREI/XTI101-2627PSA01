@@ -31,12 +31,6 @@ static Produit *chercherProduit(Boutique *b, const char *ref, int actifSeulement
     return NULL;
 }
 
-static int calculerPointsCommande(const Commande *c)
-{
-    if (c == NULL || c->montantTTC <= 0.0f) return 0;
-    return (int)((c->montantTTC + 0.001f) / 10.0f);
-}
-
 CodeRetour creerCommande(Boutique *b, int idClient, int *numeroCommande)
 {
     int ic, capacite;
@@ -94,7 +88,8 @@ void recalculerMontantsCommande(Commande *c)
 CodeRetour ajouterLigneCommande(Boutique *b, int idClient, int numeroCommande,
                                 const char *refProduit, int quantite)
 {
-    int ic, i, capacite, anciensPoints;
+    int ic, i, capacite;
+    float ancienMontantTTC;
     Client *client;
     Commande *c;
     Produit *p;
@@ -110,13 +105,14 @@ CodeRetour ajouterLigneCommande(Boutique *b, int idClient, int numeroCommande,
     p = chercherProduit(b, refProduit, 1);
     if (p == NULL) return ERR_INTROUVABLE;
     if (p->quantiteStock < quantite) return ERR_INTERDIT;
-    anciensPoints = calculerPointsCommande(c);
+    ancienMontantTTC = c->montantTTC;
     for (i = 0; i < c->nbLignes; i++) {
         if (strcmp(c->lignes[i].refProduit, refProduit) == 0) {
             c->lignes[i].quantite += quantite;
             p->quantiteStock -= quantite;
             recalculerMontantsCommande(c);
-            client->pointsFidelite += calculerPointsCommande(c) - anciensPoints;
+            retirerPointsFidelite(client, ancienMontantTTC);
+            ajouterPointsFidelite(client, c->montantTTC);
             return OK;
         }
     }
@@ -137,14 +133,16 @@ CodeRetour ajouterLigneCommande(Boutique *b, int idClient, int numeroCommande,
     c->nbLignes++;
     p->quantiteStock -= quantite;
     recalculerMontantsCommande(c);
-    client->pointsFidelite += calculerPointsCommande(c) - anciensPoints;
+    retirerPointsFidelite(client, ancienMontantTTC);
+    ajouterPointsFidelite(client, c->montantTTC);
     return OK;
 }
 
 CodeRetour supprimerLigneCommande(Boutique *b, int idClient, int numeroCommande,
                                   const char *refProduit)
 {
-    int ic, i, index = -1, anciensPoints;
+    int ic, i, index = -1;
+    float ancienMontantTTC;
     Client *client;
     Commande *c;
     Produit *p;
@@ -160,18 +158,19 @@ CodeRetour supprimerLigneCommande(Boutique *b, int idClient, int numeroCommande,
     if (index < 0) return ERR_INTROUVABLE;
     p = chercherProduit(b, refProduit, 0);
     if (p == NULL) return ERR_INTROUVABLE;
-    anciensPoints = calculerPointsCommande(c);
+    ancienMontantTTC = c->montantTTC;
     p->quantiteStock += c->lignes[index].quantite;
     for (i = index; i < c->nbLignes - 1; i++) c->lignes[i] = c->lignes[i + 1];
     c->nbLignes--;
     recalculerMontantsCommande(c);
-    client->pointsFidelite += calculerPointsCommande(c) - anciensPoints;
+    retirerPointsFidelite(client, ancienMontantTTC);
+    ajouterPointsFidelite(client, c->montantTTC);
     return OK;
 }
 
 CodeRetour annulerCommande(Boutique *b, int idClient, int numeroCommande)
 {
-    int ic, i, points;
+    int ic, i;
     Client *client;
     Commande *c;
     Produit *p;
@@ -185,13 +184,11 @@ CodeRetour annulerCommande(Boutique *b, int idClient, int numeroCommande)
     for (i = 0; i < c->nbLignes; i++)
         if (chercherProduit(b, c->lignes[i].refProduit, 0) == NULL)
             return ERR_INTROUVABLE;
-    points = calculerPointsCommande(c);
     for (i = 0; i < c->nbLignes; i++) {
         p = chercherProduit(b, c->lignes[i].refProduit, 0);
         p->quantiteStock += c->lignes[i].quantite;
     }
-    client->pointsFidelite = client->pointsFidelite >= points
-        ? client->pointsFidelite - points : 0;
+    retirerPointsFidelite(client, c->montantTTC);
     c->statut = ANNULEE;
     return OK;
 }
