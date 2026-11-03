@@ -29,7 +29,20 @@ Les commandes annulées sont exclues du chiffre d'affaires et des quantités ven
 
 Le jeu initial comprend 8 produits, 5 clients et 6 commandes couvrant les quatre statuts autorisés.
 
-## Compilation
+## Compilation et utilisation avec Make
+
+Prérequis : GNU Make, GCC ou Clang. La cible `test` utilise aussi Bash.
+
+Depuis la racine du dépôt :
+
+```sh
+make          # compile l'application dans build/shopflow
+make run      # compile si nécessaire et lance l'application
+make test     # compile et exécute les tests unitaires et de saisie
+make clean    # supprime les exécutables générés dans build/
+```
+
+## Compilation manuelle
 
 Avec GCC ou Clang, depuis la racine du dépôt :
 
