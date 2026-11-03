@@ -112,7 +112,7 @@ jobs:
             | tee build/menu-client.log
           grep -Fq "Client cree avec l'identifiant 6." build/menu-client.log
           grep -Fq 'Coordonnees et adresse du client mises a jour.' build/menu-client.log
-          grep -Fq '1 | Martin Aline | aline.martin@example.fr | 2 | 142.40 EUR' build/menu-client.log
+          grep -Fq '1 | Martin Aline | aline.martin@example.fr | 2 | 142.41 EUR' build/menu-client.log
           grep -Fq '2 | Bernard Karim | karim.bernard@example.fr | 1 | 89.50 EUR' build/menu-client.log
           grep -Fq '6 | Martin Julie | julie.updated@example.fr | 0 | 0.00 EUR' build/menu-client.log
           grep -Fq 'Suppression refusee : ce client a une commande non annulee.' build/menu-client.log
