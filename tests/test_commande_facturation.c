@@ -135,9 +135,14 @@ static void testAjoutSuppressionStockEtPoints(void)
     assert(commande->lignes[0].quantite == 2);
     assert(client->pointsFidelite == 11);
 
-    assert(supprimerLigneCommande(&boutique, 1, numero, "SKU1") == OK);
+    /* La derniere ligne ne peut etre retiree sans annuler la commande. */
+    assert(supprimerLigneCommande(&boutique, 1, numero, "SKU1")
+           == ERR_INTERDIT);
+    assert(boutique.produits[0].quantiteStock == 3);
+    assert(commande->nbLignes == 1);
+    assert(client->pointsFidelite == 11);
+    assert(annulerCommande(&boutique, 1, numero) == OK);
     assert(boutique.produits[0].quantiteStock == 5);
-    assert(commande->nbLignes == 0);
     assert(client->pointsFidelite == 0);
 
     libererBoutiqueTest(&boutique);
@@ -180,6 +185,9 @@ static void testTransitionsDeStatut(void)
 
     preparerBoutique(&boutique);
     assert(creerCommande(&boutique, 1, &numero) == OK);
+    assert(changerStatutCommande(&boutique, 1, numero, EXPEDIEE)
+           == ERR_INTERDIT);
+    assert(ajouterLigneCommande(&boutique, 1, numero, "SKU1", 1) == OK);
     assert(changerStatutCommande(&boutique, 1, numero, EXPEDIEE) == OK);
     assert(changerStatutCommande(&boutique, 1, numero, LIVREE) == OK);
     assert(changerStatutCommande(&boutique, 1, numero, EN_COURS)

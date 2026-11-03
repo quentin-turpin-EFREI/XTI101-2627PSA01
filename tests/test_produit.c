@@ -40,7 +40,7 @@ static void testModificationEtSuppression(void)
     assert(supprimerProduit(&boutique, "TEST-01") == ERR_INTERDIT);
     commande.statut = LIVREE;
     assert(supprimerProduit(&boutique, "TEST-01") == ERR_INTERDIT);
-    commande.statut = EN_ATTENTE;
+    commande.statut = EXPEDIEE;
     assert(supprimerProduit(&boutique, "TEST-01") == ERR_INTERDIT);
 
     commande.statut = ANNULEE;

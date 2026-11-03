@@ -5,6 +5,7 @@
 #include <time.h>
 #include "commande.h"
 #include "../Clients/client.h"
+#include "../Saisie-validation/utils.h"
 
 static Commande *chercherCommande(Boutique *b, int idClient, int numero)
 {
@@ -59,6 +60,7 @@ CodeRetour creerCommande(Boutique *b, int idClient, int *numeroCommande)
     nouvelle.dateCommande.jour = date->tm_mday;
     nouvelle.dateCommande.mois = date->tm_mon + 1;
     nouvelle.dateCommande.annee = date->tm_year + 1900;
+    if (!dateValide(nouvelle.dateCommande)) return ERR_INVALIDE;
     nouvelle.adresseLivraison = client->adresse;
     nouvelle.statut = EN_COURS;
     client->commandes[client->nbCommandes++] = nouvelle;
@@ -153,6 +155,7 @@ CodeRetour supprimerLigneCommande(Boutique *b, int idClient, int numeroCommande,
     c = chercherCommande(b, idClient, numeroCommande);
     if (c == NULL) return ERR_INTROUVABLE;
     if (c->statut != EN_COURS) return ERR_INTERDIT;
+    if (c->nbLignes <= 1) return ERR_INTERDIT;
     for (i = 0; i < c->nbLignes; i++)
         if (strcmp(c->lignes[i].refProduit, refProduit) == 0) { index = i; break; }
     if (index < 0) return ERR_INTROUVABLE;
@@ -204,6 +207,7 @@ CodeRetour changerStatutCommande(Boutique *b, int idClient, int numeroCommande,
     c = chercherCommande(b, idClient, numeroCommande);
     if (c == NULL) return ERR_INTROUVABLE;
     if (c->statut == nouveauStatut) return OK;
+    if (c->nbLignes <= 0) return ERR_INTERDIT;
     if (c->statut == EN_COURS && nouveauStatut == EXPEDIEE) {
         c->statut = EXPEDIEE;
         return OK;
@@ -239,7 +243,6 @@ static const char *nomStatutCommande(StatutCommande statut)
         case EXPEDIEE: return "Expediee";
         case LIVREE: return "Livree";
         case ANNULEE: return "Annulee";
-        case EN_ATTENTE: return "En attente";
         default: return "Inconnu";
     }
 }

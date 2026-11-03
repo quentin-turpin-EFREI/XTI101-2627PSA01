@@ -70,21 +70,34 @@ static CodeRetour ajouterCommandeDemo(Boutique *boutique,
                               * sizeof *commande->lignes);
     if (commande->lignes == NULL)
         return ERR_MEMOIRE;
+    commande->nbLignes = demo->nbLignes;
+    commande->capaciteLignes = demo->nbLignes;
 
     for (i = 0; i < demo->nbLignes; i++) {
         int indiceProduit = trouverProduit(boutique,
                                            demo->lignes[i].refProduit);
 
         if (indiceProduit < 0 || !boutique->produits[indiceProduit].actif
-            || demo->lignes[i].quantite <= 0)
+            || demo->lignes[i].quantite <= 0
+            || (demo->statut != ANNULEE
+                && boutique->produits[indiceProduit].quantiteStock
+                    < demo->lignes[i].quantite))
             return ERR_INVALIDE;
         commande->lignes[i] = demo->lignes[i];
     }
 
-    commande->nbLignes = demo->nbLignes;
-    commande->capaciteLignes = demo->nbLignes;
     commande->statut = demo->statut;
     recalculerMontantsCommande(commande);
+    if (demo->statut != ANNULEE) {
+        for (i = 0; i < demo->nbLignes; i++) {
+            int indiceProduit = trouverProduit(boutique,
+                                               demo->lignes[i].refProduit);
+            boutique->produits[indiceProduit].quantiteStock -=
+                demo->lignes[i].quantite;
+        }
+        ajouterPointsFidelite(&boutique->clients[indiceClient],
+                              commande->montantTTC);
+    }
     return OK;
 }
 
@@ -143,7 +156,7 @@ CodeRetour initialiserDonneesTest(Boutique *boutique)
         {1, ANNULEE, lignesAnnulee, 1},
         {2, LIVREE, lignesKarim, 1},
         {3, ANNULEE, lignesSophie, 2},
-        {4, EN_ATTENTE, lignesJulie, 3},
+        {4, EXPEDIEE, lignesJulie, 3},
         {5, LIVREE, lignesHugo, 3}
     };
     CodeRetour resultat;

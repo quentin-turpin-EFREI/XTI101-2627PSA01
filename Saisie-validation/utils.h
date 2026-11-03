@@ -4,4 +4,7 @@
 
 #include "types.h"
 
+/* Verifie le calendrier gregorien et les bornes du projet (2000-2100). */
+int dateValide(Date date);
+
 #endif /* UTILS_H */

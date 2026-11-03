@@ -122,7 +122,7 @@ jobs:
         run: |
           set -o pipefail
           printf '%s\n' \
-            '4' '' '0' \
+            '1' '4' '' '0' '0' \
             | timeout 30s valgrind \
             --leak-check=full \
             --show-leak-kinds=all \
@@ -131,7 +131,7 @@ jobs:
             ./build/shopflow \
             | tee build/menu-produit.log
           grep -Fq 'Clavier mecanique' build/menu-produit.log
-          grep -Fq 'Valeur du stock : 11075.70 EUR HT' build/menu-produit.log
+          grep -Fq 'Valeur du stock : 9866.30 EUR HT' build/menu-produit.log
 
   tests-unitaires-client-commande:
     name: Tests unitaires - clients et commandes
@@ -153,7 +153,7 @@ jobs:
             -Wall -Wextra -Wpedantic -Werror \
             -I . -I Catalogue-produit -I Clients -I Commandes \
             Catalogue-produit/produit.c Clients/client.c Commandes/commande.c \
-            Initialisation/initialisation.c \
+            Saisie-validation/utils.c Initialisation/initialisation.c \
             tests/test_client_creation.c \
             -o build/test_client_creation
 
@@ -221,6 +221,7 @@ jobs:
             -Wall -Wextra -Wpedantic -Werror \
             -I . -I Clients -I Commandes \
             Commandes/commande.c Clients/client.c \
+            Saisie-validation/utils.c \
             tests/test_commande_facturation.c \
             -o build/test_commande_facturation
 

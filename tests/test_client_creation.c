@@ -323,7 +323,7 @@ static void testInitialisationDonneesDemo(void)
             const Commande *commande = &boutique.clients[i].commandes[j];
 
             assert(commande->statut >= EN_COURS
-                   && commande->statut <= EN_ATTENTE);
+                   && commande->statut <= ANNULEE);
             statutsVus[commande->statut] = 1;
             commandesAvecTroisLignes += commande->nbLignes >= 3;
             commandesAuDessusDe600 += commande->montantHT > 600.0f;
@@ -335,7 +335,7 @@ static void testInitialisationDonneesDemo(void)
     assert(statutsVus[EN_COURS]);
     assert(statutsVus[LIVREE]);
     assert(statutsVus[ANNULEE]);
-    assert(statutsVus[EN_ATTENTE]);
+    assert(statutsVus[EXPEDIEE]);
 
     assert(boutique.clients[0].nbCommandes == 2);
     assert(chiffreAffairesClient(&boutique.clients[0]) > 149.89f);
