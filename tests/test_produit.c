@@ -9,7 +9,11 @@ static void testModificationEtSuppression(void)
 {
     Boutique boutique = {0};
     Produit produit = {"TEST-01", "Souris", "Informatique", 20, 3, 1, 1};
-    LigneCommande ligne = {"TEST-01", 20, 1};
+    LigneCommande ligne = {
+        .refProduit = "TEST-01",
+        .prixUnitaireHT = 20.0f,
+        .quantite = 1
+    };
     Commande commande = {0};
     Client client = {0};
 

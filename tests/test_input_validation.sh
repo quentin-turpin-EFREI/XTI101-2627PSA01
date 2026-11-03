@@ -9,7 +9,7 @@ run_client_case() {
     local case_name="$1"
     shift
 
-    printf '%s\n' 6 "$@" '' 0 | "$app" > "$tmp_dir/$case_name.log"
+    printf '%s\n' 2 1 "$@" 0 0 | "$app" > "$tmp_dir/$case_name.log"
     grep -Fq 'Erreur : informations invalides.' "$tmp_dir/$case_name.log"
     if grep -Fq "Client cree avec l'identifiant" "$tmp_dir/$case_name.log"; then
         printf 'Le cas client invalide a ete accepte : %s\n' "$case_name" >&2
@@ -71,14 +71,14 @@ run_client_case pays_manquant \
     Bernard Julie julie@example.fr 0612345678 \
     '12 rue de la Paix' Paris 75002 ''
 
-printf '%s\n' 6 'Client' 'Doublon' 'ALINE.MARTIN@EXAMPLE.FR' '0612345678' \
-    '12 rue de la Paix' Paris 75002 France '' 0 \
+printf '%s\n' 2 1 'Client' 'Doublon' 'ALINE.MARTIN@EXAMPLE.FR' '0612345678' \
+    '12 rue de la Paix' Paris 75002 France 0 0 \
     | "$app" > "$tmp_dir/email_doublon.log"
 grep -Fq 'Erreur : un client utilise deja cette adresse email.' \
     "$tmp_dir/email_doublon.log"
 
 long_name="$(printf '%060d' 1)"
-printf '%s\n' 6 "$long_name" '' 0 | "$app" > "$tmp_dir/nom_trop_long.log"
+printf '%s\n' 2 1 "$long_name" 0 0 | "$app" > "$tmp_dir/nom_trop_long.log"
 grep -Fq 'Saisie interrompue ou trop longue; client non cree.' \
     "$tmp_dir/nom_trop_long.log"
 
@@ -95,7 +95,7 @@ grep -Fq 'Choix invalide, recommencez.' "$tmp_dir/choix_trop_long.log"
 "$app" < /dev/null > "$tmp_dir/fin_entree.log"
 grep -Fq 'Au revoir !' "$tmp_dir/fin_entree.log"
 
-printf '%s\n' 7 abc '' 0 | "$app" > "$tmp_dir/identifiant_invalide.log"
+printf '%s\n' 2 2 abc 0 0 | "$app" > "$tmp_dir/identifiant_invalide.log"
 grep -Fq 'Identifiant invalide; modification annulee.' \
     "$tmp_dir/identifiant_invalide.log"
 

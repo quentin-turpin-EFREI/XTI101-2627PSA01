@@ -43,6 +43,7 @@ CodeRetour creerCommande(Boutique *b, int idClient, int *numeroCommande)
     ic = trouverClient(b, idClient);
     if (ic < 0) return ERR_INTROUVABLE;
     client = &b->clients[ic];
+    if (!client->actif) return ERR_INTROUVABLE;
     if (client->nbCommandes >= client->capaciteCommandes) {
         capacite = client->capaciteCommandes == 0
             ? CAPACITE_INITIALE : client->capaciteCommandes * 2;

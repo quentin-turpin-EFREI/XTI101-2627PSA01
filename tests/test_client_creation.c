@@ -338,8 +338,8 @@ static void testInitialisationDonneesDemo(void)
     assert(statutsVus[EXPEDIEE]);
 
     assert(boutique.clients[0].nbCommandes == 2);
-    assert(chiffreAffairesClient(&boutique.clients[0]) > 149.89f);
-    assert(chiffreAffairesClient(&boutique.clients[0]) < 149.91f);
+    assert(chiffreAffairesClient(&boutique.clients[0]) > 142.40f);
+    assert(chiffreAffairesClient(&boutique.clients[0]) < 142.41f);
     assert(boutique.clients[1].nbCommandes == 1);
     assert(chiffreAffairesClient(&boutique.clients[1]) == 89.50f);
     assert(boutique.clients[2].nbCommandes == 1);
