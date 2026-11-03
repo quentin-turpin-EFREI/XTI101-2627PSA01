@@ -64,7 +64,6 @@ La CI compile également le projet avec GCC et Clang, lance les tests unitaires 
 
 Auteurs recensés dans l'historique Git du dépôt :
 
-- George-Adrien
-- Quentinthierry12
-- theop
-- Usopp
+- George-Adrien (George-adrien KOLMAM SOSSO)
+- Quentinthierry12 (Quentin TURPIN)
+- Usopp (Théophile KIBONGE NDOBO)
